@@ -13,6 +13,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 6: { name: "Día de Descanso", cardio: "Descanso activo o movilidad.", exercises: [] }
             };
 
+            // --- MAPA DE EJERCICIOS A GRUPOS MUSCULARES ---
+            const exerciseMuscleGroups = {
+                "Ultra Leg Press": "Piernas/Glúteos",
+                "Ultra Leg Extension": "Cuádriceps",
+                "Ultra Glute": "Glúteos",
+                "Ultra Abdominal Crunch": "Abdominales",
+                "Ultra Back Extension": "Espalda Baja",
+                "Ultra Converging Chest Press": "Pecho",
+                "Ultra Converging Shoulder Press": "Hombros",
+                "Ultra Triceps Press": "Tríceps",
+                "Ultra Diverging Lat Pulldown": "Espalda (Dorsales)",
+                "Ultra Diverging Seated Row": "Espalda (Romboides)",
+                "Ultra Independent Biceps Curl": "Bíceps",
+                "Ultra Seated Leg Curl": "Isquiotibiales",
+                "Ultra Hip Abductor": "Abductores",
+                "Ultra Calf Extension": "Pantorrillas",
+                "Ultra Pec Fly Rear Delt": "Pecho / Deltoides Post."
+            };
+
             let db;
 
             // --- ELEMENTOS DEL DOM ---
@@ -60,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- MOSTRAR RUTINA DEL DÍA ---
             function displayDailyWorkout() {
                 const container = document.getElementById('daily-workout-container');
-                const todayIndex = new Date().getDay();
+                const todayIndex = new Date().getDay(); // 0 (Domingo) a 6 (Sábado)
                 const todayRoutine = routine[todayIndex];
                 const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
                 
@@ -71,6 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     html += '<div class="space-y-6">';
                     todayRoutine.exercises.forEach((exerciseName, index) => {
                         const imageName = toImageName(exerciseName);
+                        const muscleGroup = exerciseMuscleGroups[exerciseName] || ""; // Obtener grupo muscular
+                        const displayExerciseName = muscleGroup ? `${exerciseName} - ${muscleGroup}` : exerciseName;
+
                         html += `
                             <div class="p-3 border rounded-lg flex flex-col sm:flex-row items-center gap-4" id="exercise-card-${index}">
                                 <!-- Columna de la Imagen -->
@@ -83,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                                 <!-- Columna de Detalles y Controles -->
                                 <div class="flex-grow w-full flex flex-col gap-3">
-                                    <span class="font-semibold text-lg text-center sm:text-left">${exerciseName}</span>
+                                    <span class="font-semibold text-lg text-center sm:text-left">${displayExerciseName}</span>
                                     <div class="w-full flex flex-col md:flex-row items-center gap-3">
                                         <div class="w-full md:w-auto flex items-center gap-2">
                                             <input type="number" placeholder="3-4" class="series-input w-full md:w-20 p-2 border rounded-md text-center" data-exercise="${exerciseName}">

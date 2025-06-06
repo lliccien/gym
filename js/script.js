@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 2: { name: "Pecho, Hombros & Tríceps", cardio: "Bicicleta (15 min)", exercises: ["Ultra Converging Chest Press", "Ultra Converging Shoulder Press", "Ultra Triceps Press", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
                 3: { name: "Espalda & Bíceps", cardio: "Elíptica (15 min)", exercises: ["Ultra Diverging Lat Pulldown", "Ultra Diverging Seated Row", "Ultra Independent Biceps Curl", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
                 4: { name: "Piernas (Variante)", cardio: "Caminadora o bicicleta (15 min)", exercises: ["Ultra Seated Leg Curl", "Ultra Hip Abductor", "Ultra Calf Extension", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
-                5: { name: "Full Body Ligero + Definición", cardio: "Elíptica o bicicleta (15 min)", exercises: ["Ultra Pec Fly / Rear Delt", "Ultra Converging Shoulder Press", "Ultra Glute", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
+                5: { name: "Full Body Ligero + Definición", cardio: "Elíptica o bicicleta (15 min)", exercises: ["Ultra Pec Fly Rear Delt", "Ultra Converging Shoulder Press", "Ultra Glute", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
                 0: { name: "Día de Descanso", cardio: "Descanso activo o movilidad.", exercises: [] },
                 6: { name: "Día de Descanso", cardio: "Descanso activo o movilidad.", exercises: [] }
             };

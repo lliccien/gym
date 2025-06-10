@@ -9,12 +9,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
 </head>
 <body class="bg-gray-100 text-gray-800">
 
     <div class="container mx-auto p-4 md:p-6 max-w-4xl">
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">🗓️ Registro de Rutina Semanal</h1>
+            <div class="flex flex-col justify-center items-center mb-2">
+                <img src="images/gym-app-logo.png" alt="Logo Gym App" class="h-10 w-10 md:h-12 md:w-12 mb-2">
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Registro de Rutina Semanal</h1>
+            </div>
             <p class="text-md md:text-lg text-gray-600 mt-2">Tu progreso, día a día.</p>
         </header>
 
@@ -75,5 +80,18 @@
     <div id="toast" class="toast">¡Ejercicio registrado con éxito!</div>
 
     <script src="js/script.js" defer></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registrado con éxito:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Error al registrar ServiceWorker:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>

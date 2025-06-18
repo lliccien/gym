@@ -14,22 +14,22 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <div class="container mx-auto p-4 md:p-6 max-w-4xl">
-        <header class="text-center mb-8">
+    <div class="container mx-auto p-3 sm:p-4 md:p-6 max-w-4xl">
+        <header class="text-center mb-6">
             <div class="flex flex-col justify-center items-center mb-2">
-                <img src="images/gym-app-logo.png" alt="Logo Gym App" class="h-10 w-10 md:h-12 md:w-12 mb-2">
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Registro de Rutina Semanal</h1>
+                <img src="images/gym-app-logo.png" alt="Logo Gym App" class="h-12 w-12 md:h-14 md:w-14 mb-2">
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">Registro de Rutina Semanal</h1>
             </div>
-            <p class="text-md md:text-lg text-gray-600 mt-2">Tu progreso, día a día.</p>
+            <p class="text-sm md:text-lg text-gray-600 mt-1">Tu progreso, día a día.</p>
         </header>
 
         <!-- Pestañas de Navegación -->
-        <div class="border-b border-gray-200 mb-6">
-            <nav class="-mb-px flex space-x-6" aria-label="Tabs">
-                <button id="tab-today" class="py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 tab-active">
+        <div class="border-b border-gray-200 mb-4 sm:mb-6">
+            <nav class="-mb-px flex justify-center sm:justify-start space-x-8" aria-label="Tabs">
+                <button id="tab-today" class="py-3 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 tab-active">
                     Rutina de Hoy
                 </button>
-                <button id="tab-history" class="py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                <button id="tab-history" class="py-3 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
                     Historial
                 </button>
             </nav>
@@ -39,31 +39,31 @@
         <main>
             <!-- Vista de la Rutina Diaria -->
             <div id="view-today">
-                <div id="daily-workout-container" class="bg-white p-4 md:p-6 rounded-lg shadow-md">
-                    <!-- El contenido se generará con JavaScript -->
+                <div class="bg-white p-3 sm:p-4 md:p-6 rounded-lg shadow-md">
+                    <div id="routine-selector-container" class="mb-5">
+                        <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-blue-600 mb-3">Selecciona tu Rutina</h2>
+                        <div class="flex flex-col sm:flex-row gap-3 items-center">
+                            <select id="routine-select" class="w-full sm:w-auto flex-grow p-3 border rounded-md text-base"></select>
+                            <button id="load-routine-btn" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-md transition duration-300">Cargar Rutina</button>
+                        </div>
+                    </div>
+                    <div id="daily-workout-container" class="mt-4">
+                        <!-- El contenido se generará con JavaScript -->
+                    </div>
                 </div>
             </div>
 
             <!-- Vista del Historial -->
             <div id="view-history" class="hidden">
-                 <div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
-                    <h2 class="text-2xl font-semibold mb-4 text-gray-800">Historial de Ejercicios</h2>
-                    <div class="overflow-x-auto">
-                        <table id="history-table" class="min-w-full text-sm text-left text-gray-500">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3">Fecha</th>
-                                    <th scope="col" class="px-6 py-3">Ejercicio</th>
-                                    <th scope="col" class="px-6 py-3">Series</th>
-                                    <th scope="col" class="px-6 py-3">Repeticiones</th>
-                                    <th scope="col" class="px-6 py-3">Peso (kg)</th>
-                                    <th scope="col" class="px-6 py-3 text-center">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-tbody">
-                                <!-- Filas del historial se generarán con JavaScript -->
-                            </tbody>
-                        </table>
+                 <div class="bg-white p-3 sm:p-4 md:p-6 rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800">Historial de Ejercicios</h2>
+                        <div class="text-sm text-gray-500">
+                            Visualizando días completos de entrenamiento
+                        </div>
+                    </div>
+                    <div id="history-container" class="space-y-5 sm:space-y-8 lg:space-y-0">
+                        <!-- El historial agrupado se generará con JavaScript -->
                     </div>
                 </div>
             </div>
@@ -71,9 +71,9 @@
     </div>
 
     <!-- Modal para imagen en pantalla completa -->
-    <div id="image-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
-        <span id="modal-close" class="absolute top-4 right-6 text-white text-5xl font-bold cursor-pointer hover:text-gray-300">&times;</span>
-        <img id="modal-image" src="" alt="Imagen del ejercicio en pantalla completa" class="max-w-[90vw] max-h-[90vh] object-contain">
+    <div id="image-modal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
+        <span id="modal-close" class="absolute top-3 right-3 text-white text-4xl font-bold cursor-pointer hover:text-gray-300 p-2">&times;</span>
+        <img id="modal-image" src="" alt="Imagen del ejercicio en pantalla completa" class="max-w-[90vw] max-h-[80vh] object-contain">
     </div>
 
     <!-- Notificación Toast -->

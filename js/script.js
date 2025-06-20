@@ -10,24 +10,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 return calories > 0 ? calories : 1;
             }
 
-            function calculateCardioCalories(cardioString) {
-                const durationMatch = cardioString.match(/\((\d+)\s*min\)/);
-                if (!durationMatch) return 0;
-                const durationInMinutes = parseInt(durationMatch[1], 10);
-                const met = 8; // Valor MET promedio para cardio moderado
+            function calculateCardioCalories(type, durationInMinutes) {
+                // Valores MET (Metabolic Equivalent of Task) para diferentes tipos de cardio
+                const metValues = {
+                    'Caminadora': 7.5,  // Caminadora a ritmo moderado
+                    'Bicicleta': 8.0,   // Bicicleta estacionaria a ritmo moderado
+                    'Elíptica': 8.5,     // Elíptica a ritmo moderado
+                    'Descanso': 0       // Día de descanso (sin calorías)
+                };
+                
+                if (type === 'Descanso' || durationInMinutes <= 0) return 0;
+                
+                const met = metValues[type] || 8.0; // Valor predeterminado si no se encuentra el tipo
                 const bodyWeightKg = 70; // Un peso corporal promedio como referencia
                 return Math.round(met * 3.5 * bodyWeightKg / 200 * durationInMinutes);
             }
 
+            function extractCardioInfoFromString(cardioString) {
+                const typeRegex = /(Caminadora|Bicicleta|Elíptica)/i;
+                const durationRegex = /\((\d+)\s*min\)/;
+                
+                const typeMatch = cardioString.match(typeRegex);
+                const durationMatch = cardioString.match(durationRegex);
+                
+                const type = typeMatch ? typeMatch[1] : 'Caminadora';
+                const duration = durationMatch ? parseInt(durationMatch[1], 10) : 15;
+                
+                return { type, duration };
+            }
+
             // --- ESTRUCTURA DE LA RUTINA ---
             const routine = {
-                1: { name: "Piernas & Glúteos", cardio: "Caminadora inclinada (15 min)", exercises: ["Ultra Leg Press", "Ultra Leg Extension", "Ultra Glute", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
-                2: { name: "Pecho, Hombros & Tríceps", cardio: "Bicicleta (15 min)", exercises: ["Ultra Converging Chest Press", "Ultra Converging Shoulder Press", "Ultra Triceps Press", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
-                3: { name: "Espalda & Bíceps", cardio: "Elíptica (15 min)", exercises: ["Ultra Diverging Lat Pulldown", "Ultra Diverging Seated Row", "Ultra Independent Biceps Curl", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
-                4: { name: "Piernas (Variante)", cardio: "Caminadora o bicicleta (15 min)", exercises: ["Ultra Seated Leg Curl", "Ultra Hip Abductor", "Ultra Calf Extension", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
-                5: { name: "Full Body Ligero + Definición", cardio: "Elíptica o bicicleta (20 min)", exercises: ["Ultra Pec Fly Rear Delt", "Ultra Converging Shoulder Press", "Ultra Glute", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
-                0: { name: "Día de Descanso", cardio: "Descanso activo o movilidad.", exercises: [] },
-                6: { name: "Día de Descanso", cardio: "Descanso activo o movilidad.", exercises: [] }
+                1: { name: "Piernas & Glúteos", cardio: { type: "Caminadora", duration: 15 }, exercises: ["Ultra Leg Press", "Ultra Leg Extension", "Ultra Glute", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
+                2: { name: "Pecho, Hombros & Tríceps", cardio: { type: "Bicicleta", duration: 15 }, exercises: ["Ultra Converging Chest Press", "Ultra Converging Shoulder Press", "Ultra Triceps Press", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
+                3: { name: "Espalda & Bíceps", cardio: { type: "Elíptica", duration: 15 }, exercises: ["Ultra Diverging Lat Pulldown", "Ultra Diverging Seated Row", "Ultra Independent Biceps Curl", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
+                4: { name: "Piernas (Variante)", cardio: { type: "Caminadora", duration: 15 }, exercises: ["Ultra Seated Leg Curl", "Ultra Hip Abductor", "Ultra Calf Extension", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
+                5: { name: "Full Body Ligero + Definición", cardio: { type: "Elíptica", duration: 20 }, exercises: ["Ultra Pec Fly Rear Delt", "Ultra Converging Shoulder Press", "Ultra Glute", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
+                0: { name: "Día de Descanso", cardio: { type: "Descanso", duration: 0 }, exercises: [] },
+                6: { name: "Día de Descanso", cardio: { type: "Descanso", duration: 0 }, exercises: [] }
             };
 
             // --- MAPA DE EJERCICIOS A GRUPOS MUSCULARES ---
@@ -53,15 +73,41 @@ document.addEventListener('DOMContentLoaded', () => {
             const routineSelect = document.getElementById('routine-select');
             const loadRoutineBtn = document.getElementById('load-routine-btn');
             const historyContainer = document.getElementById('history-container');
+            const cardioTypeSelect = document.getElementById('cardio-type');
+            const cardioTimeSelect = document.getElementById('cardio-time');
+            const cardioCaloriesInput = document.getElementById('cardio-calories');
+            const registerCardioBtn = document.getElementById('register-cardio-btn');
+            const cardioSection = document.getElementById('cardio-section');
+            const cardioRecommendation = document.getElementById('cardio-recommendation');
 
             // --- CONFIGURACIÓN DE INDEXEDDB ---
             function setupDB() {
-                const request = indexedDB.open('gymTrackerDB', 3); // <--- VERSIÓN 3
+                const request = indexedDB.open('gymTrackerDB', 4); // <--- VERSIÓN 4
                 request.onupgradeneeded = (e) => {
-                    db = e.target.result;
-                    const store = e.target.transaction.objectStore('workouts');
-                    if (!store.indexNames.contains('routineId')) {
+                    const db = e.target.result;
+                    
+                    // Verificar si el almacén de objetos 'workouts' existe
+                    if (!db.objectStoreNames.contains('workouts')) {
+                        const store = db.createObjectStore('workouts', { keyPath: 'id', autoIncrement: true });
+                        store.createIndex('date', 'date', { unique: false });
                         store.createIndex('routineId', 'routineId', { unique: false });
+                    } else {
+                        try {
+                            const store = e.target.transaction.objectStore('workouts');
+                            // Asegurarse de que los índices existan
+                            if (!store.indexNames.contains('routineId')) {
+                                store.createIndex('routineId', 'routineId', { unique: false });
+                            }
+                        } catch (err) {
+                            console.error('Error al actualizar workouts:', err);
+                        }
+                    }
+                    
+                    // Asegurarse de que el almacén 'cardio' existe
+                    if (!db.objectStoreNames.contains('cardio')) {
+                        const cardioStore = db.createObjectStore('cardio', { keyPath: 'id', autoIncrement: true });
+                        cardioStore.createIndex('date', 'date', { unique: false });
+                        cardioStore.createIndex('routineId', 'routineId', { unique: false });
                     }
                 };
                 request.onsuccess = (e) => {
@@ -70,6 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const todayIndex = new Date().getDay();
                     routineSelect.value = todayIndex;
                     displayWorkout(todayIndex);
+                    
+                    // Verificar si ya hay cardio registrado para hoy
+                    checkTodayCardio();
                 };
                 request.onerror = (e) => console.error('Error al abrir IndexedDB:', e.target.errorCode);
             }
@@ -116,9 +165,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 
-                const cardioCalories = calculateCardioCalories(selectedRoutine.cardio);
+                // Configurar el selector de cardio con el tipo recomendado
+                updateCardioSelectors(selectedRoutine.cardio);
+                
+                const cardioCalories = calculateCardioCalories(selectedRoutine.cardio.type, selectedRoutine.cardio.duration);
                 let html = `<h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-1">${dayName} - ${selectedRoutine.name}</h3>`;
-                html += `<p class="text-gray-500 mb-1"><strong>Cardio:</strong> ${selectedRoutine.cardio}</p>`;
+                html += `<p class="text-gray-500 mb-1"><strong>Cardio recomendado:</strong> ${selectedRoutine.cardio.type} (${selectedRoutine.cardio.duration} min)</p>`;
                 if (cardioCalories > 0) {
                     html += `<p class="text-sm font-semibold text-orange-500 mb-6">🔥 ${cardioCalories} Kcal (aprox.)</p>`;
                 }
@@ -163,6 +215,173 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.innerHTML = html;
                 addRegisterEventListeners();
                 addImageModalListeners();
+                
+                // Verificar si ya hay cardio registrado para hoy
+                checkTodayCardio();
+            }
+            
+            // --- MANEJO DE CARDIO PERSONALIZADO ---
+            function updateCardioSelectors(cardioInfo) {
+                // Actualizar tipo de cardio
+                cardioTypeSelect.value = cardioInfo.type;
+                
+                // Actualizar tiempo de cardio
+                if (cardioInfo.duration > 0 && cardioTimeSelect.querySelector(`option[value="${cardioInfo.duration}"]`)) {
+                    cardioTimeSelect.value = cardioInfo.duration;
+                } else {
+                    cardioTimeSelect.value = "15"; // Valor por defecto
+                }
+                
+                // Limpiar calorías manuales
+                cardioCaloriesInput.value = "";
+                
+                // Actualizar recomendación
+                updateCardioRecommendation();
+            }
+            
+            function updateCardioRecommendation() {
+                const type = cardioTypeSelect.value;
+                const time = parseInt(cardioTimeSelect.value, 10);
+                const routineInfo = routine[currentRoutineId];
+                
+                let recommendation = "";
+                
+                if (routineInfo) {
+                    if (routineInfo.exercises.length === 0) {
+                        recommendation = "Día de descanso. Puedes hacer cardio ligero o ejercicios de movilidad.";
+                    } else {
+                        const calories = calculateCardioCalories(type, time);
+                        recommendation = `Recomendación: ${time} minutos de ${type} para complementar tu rutina de ${routineInfo.name}. Quemarás aproximadamente ${calories} Kcal.`;
+                    }
+                }
+                
+                cardioRecommendation.textContent = recommendation;
+                
+                // Actualizar el placeholder de calorías
+                const calories = calculateCardioCalories(type, time);
+                cardioCaloriesInput.placeholder = `~${calories} Kcal`;
+            }
+            
+            function registerCardio() {
+                const type = cardioTypeSelect.value;
+                const duration = parseInt(cardioTimeSelect.value, 10);
+                let calories = cardioCaloriesInput.value.trim() !== "" ? 
+                    parseInt(cardioCaloriesInput.value, 10) : 
+                    calculateCardioCalories(type, duration);
+                
+                if (isNaN(calories) || calories < 0) {
+                    calories = calculateCardioCalories(type, duration);
+                }
+                
+                const cardioEntry = {
+                    date: new Date().toISOString(),
+                    type: type,
+                    duration: duration,
+                    calories: calories,
+                    routineId: currentRoutineId,
+                    isCustom: true
+                };
+                
+                addCardioEntry(cardioEntry);
+            }
+            
+            function addCardioEntry(entry) {
+                if (!db) return;
+                const transaction = db.transaction(['cardio'], 'readwrite');
+                const request = transaction.objectStore('cardio').add(entry);
+                
+                request.onsuccess = () => {
+                    showToast('¡Cardio registrado con éxito!');
+                    markCardioAsCompleted();
+                };
+                
+                request.onerror = (e) => {
+                    showToast('Error: No se pudo guardar el registro de cardio.', true);
+                    console.error('Error al guardar cardio:', e.target.error);
+                };
+            }
+            
+            function deleteCardioEntry(id, callback) {
+                if (!db) return;
+                const transaction = db.transaction(['cardio'], 'readwrite');
+                const request = transaction.objectStore('cardio').delete(id);
+                
+                request.onsuccess = () => {
+                    showToast("Registro de cardio eliminado.");
+                    callback(); // Llama al callback para refrescar el historial
+                };
+                
+                request.onerror = (e) => console.error('Error al eliminar cardio:', e.target.error);
+            }
+            
+            function markCardioAsCompleted() {
+                cardioSection.classList.add('completed');
+                registerCardioBtn.textContent = '✓ Cardio Registrado';
+                registerCardioBtn.classList.add('completed');
+                registerCardioBtn.disabled = true;
+                
+                // Agregar información de calorías
+                const type = cardioTypeSelect.value;
+                const duration = parseInt(cardioTimeSelect.value, 10);
+                let calories = cardioCaloriesInput.value.trim() !== "" ? 
+                    parseInt(cardioCaloriesInput.value, 10) : 
+                    calculateCardioCalories(type, duration);
+                
+                const calorieInfo = document.createElement('div');
+                calorieInfo.className = 'text-center text-sm font-semibold text-green-600 mt-2';
+                calorieInfo.textContent = `🔥 ${calories} Kcal quemadas - ${type} (${duration} min)`;
+                registerCardioBtn.insertAdjacentElement('afterend', calorieInfo);
+            }
+            
+            function checkTodayCardio() {
+                if (!db) return;
+                
+                const today = new Date();
+                const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+                const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString();
+                
+                const transaction = db.transaction(['cardio'], 'readonly');
+                const store = transaction.objectStore('cardio');
+                const index = store.index('date');
+                
+                const range = IDBKeyRange.bound(startOfDay, endOfDay);
+                const request = index.openCursor(range);
+                
+                let cardioFound = false;
+                
+                request.onsuccess = (e) => {
+                    const cursor = e.target.result;
+                    if (cursor) {
+                        if (cursor.value.routineId == currentRoutineId) {
+                            cardioFound = true;
+                            // Actualizar la UI para mostrar el cardio como completado
+                            const cardioData = cursor.value;
+                            cardioTypeSelect.value = cardioData.type;
+                            cardioTimeSelect.value = cardioData.duration;
+                            cardioCaloriesInput.value = cardioData.calories;
+                            markCardioAsCompleted();
+                        }
+                        cursor.continue();
+                    } else {
+                        // Si no se encontró cardio para hoy, asegurarse de que la UI esté en estado "no completado"
+                        if (!cardioFound) {
+                            cardioSection.classList.remove('completed');
+                            registerCardioBtn.textContent = 'Registrar Cardio';
+                            registerCardioBtn.classList.remove('completed');
+                            registerCardioBtn.disabled = false;
+                            
+                            // Eliminar cualquier mensaje de calorías que pudiera existir
+                            const nextElement = registerCardioBtn.nextElementSibling;
+                            if (nextElement && nextElement.textContent.includes('Kcal')) {
+                                nextElement.remove();
+                            }
+                        }
+                    }
+                };
+                
+                request.onerror = (e) => {
+                    console.error('Error al buscar registros de cardio:', e.target.error);
+                };
             }
             
             // --- MANEJO DE EVENTOS DEL MODAL DE IMAGEN ---
@@ -251,133 +470,122 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 historyContainer.innerHTML = '';
 
-                const transaction = db.transaction(['workouts'], 'readonly');
-                const store = transaction.objectStore('workouts');
-                const request = store.getAll();
+                // Obtener todas las entradas de ejercicios
+                const workoutEntries = await getAllEntries('workouts');
+                // Obtener todas las entradas de cardio
+                const cardioEntries = await getAllEntries('cardio');
+                
+                if ((!workoutEntries || workoutEntries.length === 0) && (!cardioEntries || cardioEntries.length === 0)) {
+                    historyContainer.innerHTML = '<p class="text-center py-8 text-gray-500">Aún no hay registros.</p>';
+                    return;
+                }
 
-                request.onerror = (e) => {
-                    historyContainer.innerHTML = '<p class="text-red-500">Error al cargar el historial.</p>';
-                };
-
-                request.onsuccess = (e) => {
-                    const allEntries = e.target.result;
-                    if (!allEntries || allEntries.length === 0) {
-                        historyContainer.innerHTML = '<p class="text-center py-8 text-gray-500">Aún no hay registros.</p>';
-                        return;
+                // Combinar todas las entradas (ejercicios y cardio)
+                const allEntries = [...workoutEntries];
+                
+                // Agrupar por fecha (YYYY-MM-DD)
+                const groupedByDate = {};
+                
+                // Agrupar ejercicios por fecha
+                workoutEntries.forEach(entry => {
+                    const date = entry.date.split('T')[0];
+                    if (!groupedByDate[date]) {
+                        groupedByDate[date] = {
+                            workouts: [],
+                            cardio: null,
+                            routineId: entry.routineId
+                        };
                     }
+                    groupedByDate[date].workouts.push(entry);
+                });
+                
+                // Agrupar cardio por fecha
+                cardioEntries.forEach(entry => {
+                    const date = entry.date.split('T')[0];
+                    if (!groupedByDate[date]) {
+                        groupedByDate[date] = {
+                            workouts: [],
+                            cardio: entry,
+                            routineId: entry.routineId
+                        };
+                    } else {
+                        groupedByDate[date].cardio = entry;
+                    }
+                });
 
-                    // Agrupar por fecha (YYYY-MM-DD)
-                    const groupedByDate = allEntries.reduce((acc, entry) => {
-                        const date = entry.date.split('T')[0];
-                        if (!acc[date]) {
-                            acc[date] = [];
-                        }
-                        acc[date].push(entry);
-                        return acc;
-                    }, {});
+                // Ordenar fechas de más reciente a más antigua
+                const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
 
-                    // Ordenar fechas de más reciente a más antigua
-                    const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
-
-                    sortedDates.forEach(date => {
-                        const entries = groupedByDate[date];
-                        const routineId = entries[0].routineId; // Asumimos la misma rutina para todas las entradas del día
-                        const routineInfo = routine[routineId] || { name: 'Desconocida', cardio: '', exercises: [] };
-                        const cardioCalories = calculateCardioCalories(routineInfo.cardio);
-                        let totalStrengthCalories = 0;
-                        
-                        // Crear un mapa de los ejercicios registrados para fácil acceso
-                        const registeredExercises = {};
-                        entries.forEach(entry => {
-                            registeredExercises[entry.exercise] = entry;
-                            totalStrengthCalories += entry.calories || 0;
-                        });
-                        
-                        // Crear filas de tabla para todos los ejercicios de la rutina
-                        let tableRows = '';
-                        
-                        // Añadir fila de cardio primero
-                        if (routineInfo.cardio) {
-                            const isCardioCompleted = cardioCalories > 0;
-                            tableRows += `
-                                <tr class="border-b ${isCardioCompleted ? 'hover:bg-blue-50' : 'bg-gray-50 text-gray-500'} transition-colors">
-                                    <td class="py-2 px-3 bg-gradient-to-r ${isCardioCompleted ? 'from-green-50 to-teal-50' : 'from-gray-50 to-gray-100'} font-medium" data-label="Ejercicio">
-                                        <span class="font-medium">Cardio - ${routineInfo.cardio}</span>
-                                    </td>
-                                    <td class="py-2 px-3" data-label="Datos">
-                                        ${isCardioCompleted ? 
-                                            `<div class="flex justify-center items-center">
-                                                <div class="data-card bg-orange-50">
-                                                    <span class="label text-gray-500">Kcal</span>
-                                                    <span class="value">${cardioCalories}</span>
-                                                </div>
-                                                <div class="ml-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                                                    ✓ Completado
-                                                </div>
-                                            </div>` : 
-                                            `<span class="text-sm text-gray-400">Pendiente de registrar</span>`
-                                        }
-                                    </td>
-                                </tr>`;
-                        }
-                        
-                        // Si hay una rutina definida, mostrar todos los ejercicios de esa rutina
-                        if (routineInfo.exercises && routineInfo.exercises.length > 0) {
-                            routineInfo.exercises.forEach(exerciseName => {
-                                const entry = registeredExercises[exerciseName];
-                                const muscleGroup = exerciseMuscleGroups[exerciseName] || "";
-                                const displayName = muscleGroup ? `${exerciseName} - ${muscleGroup}` : exerciseName;
-                                
-                                if (entry) {
-                                    // Ejercicio registrado
-                                    tableRows += `
-                                        <tr class="border-b hover:bg-blue-50 transition-colors">
-                                            <td class="py-2 px-3 bg-gradient-to-r from-blue-50 to-indigo-50 flex justify-between items-center" data-label="Ejercicio">
-                                                <span class="font-medium">${displayName}</span>
-                                                <button class="delete-btn-hist bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 rounded-full p-1.5 transition-colors" data-id="${entry.id}" title="Eliminar registro">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            </td>
-                                            <td class="py-2 px-3" data-label="Datos">
-                                            <div class="flex justify-center items-center gap-2 flex-wrap data-cards-container">
-                                                <div class="data-card bg-blue-50">
-                                                    <span class="label text-gray-500">Series</span>
-                                                    <span class="value">${entry.series}</span>
-                                                </div>
-                                                <div class="data-card bg-green-50">
-                                                    <span class="label text-gray-500">Reps</span>
-                                                    <span class="value">${entry.reps}</span>
-                                                </div>
-                                                <div class="data-card bg-purple-50">
-                                                    <span class="label text-gray-500">Peso</span>
-                                                    <span class="value">${entry.weight} kg</span>
-                                                </div>
-                                                <div class="data-card bg-orange-50">
-                                                    <span class="label text-gray-500">Kcal</span>
-                                                    <span class="value">${entry.calories}</span>
-                                                </div>
-                                            </div>
-                                            </td>
-                                        </tr>`;
-                                } else {
-                                    // Ejercicio no registrado - mostrar como pendiente
-                                    tableRows += `
-                                        <tr class="border-b bg-gray-50 text-gray-500">
-                                            <td class="py-2 px-3 bg-gradient-to-r from-gray-50 to-gray-100 font-medium" data-label="Ejercicio">${displayName}</td>
-                                            <td class="py-2 px-3 text-center" data-label="Datos">
-                                                <span class="text-sm text-gray-400">Pendiente de registrar</span>
-                                            </td>
-                                        </tr>`;
+                sortedDates.forEach(date => {
+                    const entries = groupedByDate[date];
+                    const routineId = entries.routineId; // Rutina del día
+                    const routineInfo = routine[routineId] || { name: 'Desconocida', cardio: { type: 'Desconocido', duration: 0 }, exercises: [] };
+                    
+                    let totalStrengthCalories = 0;
+                    let cardioCalories = 0;
+                    
+                    // Calcular calorías de ejercicios de fuerza
+                    entries.workouts.forEach(entry => {
+                        totalStrengthCalories += entry.calories || 0;
+                    });
+                    
+                    // Calcular calorías de cardio
+                    if (entries.cardio) {
+                        cardioCalories = entries.cardio.calories || 0;
+                    }
+                    
+                    // Crear un mapa de los ejercicios registrados para fácil acceso
+                    const registeredExercises = {};
+                    entries.workouts.forEach(entry => {
+                        registeredExercises[entry.exercise] = entry;
+                    });
+                    
+                    // Crear filas de tabla para todos los ejercicios de la rutina
+                    let tableRows = '';
+                    
+                    // Añadir fila de cardio primero
+                    const isCardioCompleted = entries.cardio !== null;
+                    const cardioInfo = entries.cardio || { type: routineInfo.cardio.type, duration: routineInfo.cardio.duration };
+                    
+                    tableRows += `
+                        <tr class="border-b ${isCardioCompleted ? 'hover:bg-blue-50' : 'bg-gray-50 text-gray-500'} transition-colors">
+                            <td class="py-2 px-3 bg-gradient-to-r ${isCardioCompleted ? 'from-green-50 to-teal-50' : 'from-gray-50 to-gray-100'} font-medium" data-label="Ejercicio">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-medium">Cardio - ${cardioInfo.type} (${cardioInfo.duration} min)</span>
+                                    ${isCardioCompleted ? `
+                                        <button class="delete-cardio-btn-hist bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 rounded-full p-1.5 transition-colors" data-id="${entries.cardio.id}" title="Eliminar registro de cardio">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </td>
+                            <td class="py-2 px-3" data-label="Datos">
+                                ${isCardioCompleted ? 
+                                    `<div class="flex justify-center items-center">
+                                        <div class="data-card bg-orange-50">
+                                            <span class="label text-gray-500">Kcal</span>
+                                            <span class="value">${cardioInfo.calories}</span>
+                                        </div>
+                                        <div class="ml-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                                            ✓ Completado
+                                        </div>
+                                    </div>` : 
+                                    `<span class="text-sm text-gray-400">Pendiente de registrar</span>`
                                 }
-                            });
-                        } else {
-                            // Si no hay una rutina definida, mostrar solo los ejercicios registrados
-                            entries.forEach(entry => {
-                                const muscleGroup = exerciseMuscleGroups[entry.exercise] || "";
-                                const displayName = muscleGroup ? `${entry.exercise} - ${muscleGroup}` : entry.exercise;
-                                
+                            </td>
+                        </tr>`;
+                    
+                    // Si hay una rutina definida, mostrar todos los ejercicios de esa rutina
+                    if (routineInfo.exercises && routineInfo.exercises.length > 0) {
+                        routineInfo.exercises.forEach(exerciseName => {
+                            const entry = registeredExercises[exerciseName];
+                            const muscleGroup = exerciseMuscleGroups[exerciseName] || "";
+                            const displayName = muscleGroup ? `${exerciseName} - ${muscleGroup}` : exerciseName;
+                            
+                            if (entry) {
+                                // Ejercicio registrado
                                 tableRows += `
                                     <tr class="border-b hover:bg-blue-50 transition-colors">
                                         <td class="py-2 px-3 bg-gradient-to-r from-blue-50 to-indigo-50 flex justify-between items-center" data-label="Ejercicio">
@@ -389,95 +597,165 @@ document.addEventListener('DOMContentLoaded', () => {
                                             </button>
                                         </td>
                                         <td class="py-2 px-3" data-label="Datos">
-                                            <div class="flex justify-center items-center gap-2 flex-wrap data-cards-container">
-                                                <div class="data-card bg-blue-50">
-                                                    <span class="label text-gray-500">Series</span>
-                                                    <span class="value">${entry.series}</span>
-                                                </div>
-                                                <div class="data-card bg-green-50">
-                                                    <span class="label text-gray-500">Reps</span>
-                                                    <span class="value">${entry.reps}</span>
-                                                </div>
-                                                <div class="data-card bg-purple-50">
-                                                    <span class="label text-gray-500">Peso</span>
-                                                    <span class="value">${entry.weight} kg</span>
-                                                </div>
-                                                <div class="data-card bg-orange-50">
-                                                    <span class="label text-gray-500">Kcal</span>
-                                                    <span class="value">${entry.calories}</span>
-                                                </div>
+                                        <div class="flex justify-center items-center gap-2 flex-wrap data-cards-container">
+                                            <div class="data-card bg-blue-50">
+                                                <span class="label text-gray-500">Series</span>
+                                                <span class="value">${entry.series}</span>
                                             </div>
+                                            <div class="data-card bg-green-50">
+                                                <span class="label text-gray-500">Reps</span>
+                                                <span class="value">${entry.reps}</span>
+                                            </div>
+                                            <div class="data-card bg-purple-50">
+                                                <span class="label text-gray-500">Peso</span>
+                                                <span class="value">${entry.weight} kg</span>
+                                            </div>
+                                            <div class="data-card bg-orange-50">
+                                                <span class="label text-gray-500">Kcal</span>
+                                                <span class="value">${entry.calories}</span>
+                                            </div>
+                                        </div>
                                         </td>
                                     </tr>`;
-                            });
-                        }
+                            } else {
+                                // Ejercicio no registrado - mostrar como pendiente
+                                tableRows += `
+                                    <tr class="border-b bg-gray-50 text-gray-500">
+                                        <td class="py-2 px-3 bg-gradient-to-r from-gray-50 to-gray-100 font-medium" data-label="Ejercicio">${displayName}</td>
+                                        <td class="py-2 px-3 text-center" data-label="Datos">
+                                            <span class="text-sm text-gray-400">Pendiente de registrar</span>
+                                        </td>
+                                    </tr>`;
+                            }
+                        });
+                    } else {
+                        // Si no hay una rutina definida, mostrar solo los ejercicios registrados
+                        entries.workouts.forEach(entry => {
+                            const muscleGroup = exerciseMuscleGroups[entry.exercise] || "";
+                            const displayName = muscleGroup ? `${entry.exercise} - ${muscleGroup}` : entry.exercise;
+                            
+                            tableRows += `
+                                <tr class="border-b hover:bg-blue-50 transition-colors">
+                                    <td class="py-2 px-3 bg-gradient-to-r from-blue-50 to-indigo-50 flex justify-between items-center" data-label="Ejercicio">
+                                        <span class="font-medium">${displayName}</span>
+                                        <button class="delete-btn-hist bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 rounded-full p-1.5 transition-colors" data-id="${entry.id}" title="Eliminar registro">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </td>
+                                    <td class="py-2 px-3" data-label="Datos">
+                                        <div class="flex justify-center items-center gap-2 flex-wrap data-cards-container">
+                                            <div class="data-card bg-blue-50">
+                                                <span class="label text-gray-500">Series</span>
+                                                <span class="value">${entry.series}</span>
+                                            </div>
+                                            <div class="data-card bg-green-50">
+                                                <span class="label text-gray-500">Reps</span>
+                                                <span class="value">${entry.reps}</span>
+                                            </div>
+                                            <div class="data-card bg-purple-50">
+                                                <span class="label text-gray-500">Peso</span>
+                                                <span class="value">${entry.weight} kg</span>
+                                            </div>
+                                            <div class="data-card bg-orange-50">
+                                                <span class="label text-gray-500">Kcal</span>
+                                                <span class="value">${entry.calories}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>`;
+                        });
+                    }
 
-                        const totalCalories = totalStrengthCalories + cardioCalories;
-                        const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                        
-                        // Cálculo de completitud de la rutina
-                        const totalExercises = routineInfo.exercises ? routineInfo.exercises.length + 1 : 1; // +1 para incluir el cardio
-                        const completedExercises = Object.keys(registeredExercises).length;
-                        // Verificar si se completó el cardio (si tiene calorías, se considera completado)
-                        const cardioCompleted = cardioCalories > 0 ? 1 : 0;
-                        const totalCompletedExercises = completedExercises + cardioCompleted;
-                        const completionPercentage = Math.round((totalCompletedExercises / totalExercises) * 100);
-                        
-                        const progressBarColor = completionPercentage < 50 ? 'bg-red-500' : 
-                                               completionPercentage < 100 ? 'bg-yellow-500' : 'bg-green-500';
+                    const totalCalories = totalStrengthCalories + cardioCalories;
+                    const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    
+                    // Cálculo de completitud de la rutina
+                    const totalExercises = routineInfo.exercises ? routineInfo.exercises.length + 1 : 1; // +1 para incluir el cardio
+                    const completedExercises = Object.keys(registeredExercises).length;
+                    // Verificar si se completó el cardio (si existe entrada de cardio)
+                    const cardioCompleted = entries.cardio ? 1 : 0;
+                    const totalCompletedExercises = completedExercises + cardioCompleted;
+                    const completionPercentage = Math.round((totalCompletedExercises / totalExercises) * 100);
+                    
+                    const progressBarColor = completionPercentage < 50 ? 'bg-red-500' : 
+                                           completionPercentage < 100 ? 'bg-yellow-500' : 'bg-green-500';
 
-                        const historyCard = `
-                            <div class="border rounded-lg overflow-hidden bg-white shadow-sm">
-                                <div class="p-4 bg-gray-50 border-b">
-                                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+                    const historyCard = `
+                        <div class="border rounded-lg overflow-hidden bg-white shadow-sm">
+                            <div class="p-4 bg-gray-50 border-b">
+                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+                                    <div>
+                                        <h3 class="font-bold text-base sm:text-lg text-gray-800">${formattedDate}</h3>
+                                        <p class="text-sm text-gray-600">${routineInfo.name}</p>
+                                    </div>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                                    <div class="h-2.5 rounded-full ${progressBarColor}" style="width: ${completionPercentage}%"></div>
+                                </div>
+                                <div class="flex justify-between items-center text-xs mt-1">
+                                    <span class="${cardioCompleted ? 'cardio-indicator cardio-completed' : 'cardio-indicator cardio-pending'}">
+                                        ${cardioCompleted ? '✓' : '○'} Cardio
+                                    </span>
+                                    <span class="text-right font-medium">
+                                        ${totalCompletedExercises}/${totalExercises} ejercicios (${completedExercises} fuerza + ${cardioCompleted} cardio)
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="p-3 sm:p-4">
+                                <div class="overflow-x-auto -mx-3 sm:mx-0">
+                                    <table class="min-w-full text-sm mb-4">
+                                        <thead class="text-left bg-gray-50">
+                                            <tr class="border-b">
+                                                <th class="py-2 px-3 font-semibold" style="width: 50%">Ejercicio</th>
+                                                <th class="py-2 px-3 font-semibold text-center">Datos</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>${tableRows}</tbody>
+                                    </table>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-md">
+                                    <h4 class="text-sm font-bold text-blue-800 mb-2">Resumen de Calorías Aproximadas</h4>
+                                    <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center">
                                         <div>
-                                            <h3 class="font-bold text-base sm:text-lg text-gray-800">${formattedDate}</h3>
-                                            <p class="text-sm text-gray-600">${routineInfo.name}</p>
+                                            <p class="text-sm text-gray-700 mb-1"><span class="font-medium mr-1">Fuerza:</span> <span class="font-bold">${totalStrengthCalories} Kcal</span></p>
+                                            <p class="text-sm text-gray-700"><span class="font-medium mr-1">Cardio:</span> <span class="font-bold">${cardioCalories} Kcal</span></p>
                                         </div>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-                                        <div class="h-2.5 rounded-full ${progressBarColor}" style="width: ${completionPercentage}%"></div>
-                                    </div>
-                                    <div class="flex justify-between items-center text-xs mt-1">
-                                        <span class="${cardioCompleted ? 'cardio-indicator cardio-completed' : 'cardio-indicator cardio-pending'}">
-                                            ${cardioCompleted ? '✓' : '○'} Cardio
-                                        </span>
-                                        <span class="text-right font-medium">
-                                            ${totalCompletedExercises}/${totalExercises} ejercicios (${completedExercises} fuerza + ${cardioCompleted} cardio)
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="p-3 sm:p-4">
-                                    <div class="overflow-x-auto -mx-3 sm:mx-0">
-                                        <table class="min-w-full text-sm mb-4">
-                                            <thead class="text-left bg-gray-50">
-                                                <tr class="border-b">
-                                                    <th class="py-2 px-3 font-semibold" style="width: 50%">Ejercicio</th>
-                                                    <th class="py-2 px-3 font-semibold text-center">Datos</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>${tableRows}</tbody>
-                                        </table>
-                                    </div>
-                                    <div class="bg-blue-50 p-3 rounded-md">
-                                        <h4 class="text-sm font-bold text-blue-800 mb-2">Resumen de Calorías Aproximadas</h4>
-                                        <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center">
-                                            <div>
-                                                <p class="text-sm text-gray-700 mb-1"><span class="font-medium mr-1">Fuerza:</span> <span class="font-bold">${totalStrengthCalories} Kcal</span></p>
-                                                <p class="text-sm text-gray-700"><span class="font-medium mr-1">Cardio:</span> <span class="font-bold">${cardioCalories} Kcal</span></p>
-                                            </div>
-                                            <div class="mt-2 sm:mt-0 py-1 px-3 bg-blue-100 rounded-lg">
-                                                <p class="text-md text-blue-800 font-bold">Total: <span class="text-lg">${totalCalories} Kcal</span></p>
-                                                <p class="text-xs text-blue-600 text-center">(fuerza + cardio)</p>
-                                            </div>
+                                        <div class="mt-2 sm:mt-0 py-1 px-3 bg-blue-100 rounded-lg">
+                                            <p class="text-md text-blue-800 font-bold">Total: <span class="text-lg">${totalCalories} Kcal</span></p>
+                                            <p class="text-xs text-blue-600 text-center">(fuerza + cardio)</p>
                                         </div>
                                     </div>
                                 </div>
-                            </div>`;
-                        historyContainer.innerHTML += historyCard;
-                    });
-                    addDeleteEventListenersHistory();
-                };
+                            </div>
+                        </div>`;
+                    historyContainer.innerHTML += historyCard;
+                });
+                addDeleteEventListenersHistory();
+            }
+            
+            // Función auxiliar para obtener todas las entradas de un almacén
+            function getAllEntries(storeName) {
+                return new Promise((resolve, reject) => {
+                    if (!db) {
+                        resolve([]);
+                        return;
+                    }
+                    
+                    const transaction = db.transaction([storeName], 'readonly');
+                    const store = transaction.objectStore(storeName);
+                    const request = store.getAll();
+                    
+                    request.onsuccess = (e) => {
+                        resolve(e.target.result || []);
+                    };
+                    
+                    request.onerror = (e) => {
+                        console.error(`Error al obtener entradas de ${storeName}:`, e.target.error);
+                        resolve([]);
+                    };
+                });
             }
             
             function addDeleteEventListenersHistory() {
@@ -487,6 +765,16 @@ document.addEventListener('DOMContentLoaded', () => {
                        const entryId = parseInt(e.currentTarget.dataset.id, 10);
                        if (window.confirm('¿Estás seguro de que quieres eliminar este registro?')) {
                             deleteWorkoutEntry(entryId, displayHistory); // Pasar displayHistory como callback
+                       }
+                    });
+                });
+                
+                document.querySelectorAll('.delete-cardio-btn-hist').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                       e.stopPropagation(); // Evitar que el evento se propague
+                       const entryId = parseInt(e.currentTarget.dataset.id, 10);
+                       if (window.confirm('¿Estás seguro de que quieres eliminar este registro de cardio?')) {
+                            deleteCardioEntry(entryId, displayHistory); // Pasar displayHistory como callback
                        }
                     });
                 });
@@ -503,4 +791,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // --- INICIALIZACIÓN ---
             setupDB();
+            
+            // --- EVENTOS PARA CARDIO PERSONALIZADO ---
+            registerCardioBtn.addEventListener('click', registerCardio);
+            
+            // Actualizar recomendación cuando cambian los selectores
+            cardioTypeSelect.addEventListener('change', updateCardioRecommendation);
+            cardioTimeSelect.addEventListener('change', updateCardioRecommendation);
+            
+            // Actualizar calorías automáticamente cuando cambia el tipo o tiempo
+            cardioTypeSelect.addEventListener('change', () => {
+                // Actualizar el placeholder con el cálculo aproximado de calorías
+                const type = cardioTypeSelect.value;
+                const duration = parseInt(cardioTimeSelect.value, 10);
+                const calories = calculateCardioCalories(type, duration);
+                cardioCaloriesInput.placeholder = `~${calories} Kcal`;
+            });
+            
+            cardioTimeSelect.addEventListener('change', () => {
+                // Actualizar el placeholder con el cálculo aproximado de calorías
+                const type = cardioTypeSelect.value;
+                const duration = parseInt(cardioTimeSelect.value, 10);
+                const calories = calculateCardioCalories(type, duration);
+                cardioCaloriesInput.placeholder = `~${calories} Kcal`;
+            });
         });

@@ -1,0 +1,24 @@
+---
+// Página principal de la aplicación de gimnasio
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Navigation from '../components/Navigation.astro';
+import TodayView from '../components/TodayView.astro';
+import HistoryView from '../components/HistoryView.astro';
+import Modal from '../components/Modal.astro';
+import Toast from '../components/Toast.astro';
+---
+
+<Layout title="Seguimiento de Gimnasio">
+	<Header />
+	<Navigation />
+	
+	<!-- Contenido Principal -->
+	<main>
+		<TodayView />
+		<HistoryView />
+	</main>
+	
+	<Modal />
+	<Toast />
+</Layout>

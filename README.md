@@ -26,8 +26,20 @@ Una aplicación web progresiva (PWA) para el seguimiento de entrenamientos de gi
 │   ├── manifest.json          # Configuración PWA
 │   └── sw.js                  # Service Worker
 ├── src/
-│   └── pages/
-│       └── index.astro        # Página principal
+│   ├── components/            # Componentes reutilizables
+│   │   ├── Header.astro       # Encabezado con logo y título
+│   │   ├── Navigation.astro   # Pestañas de navegación
+│   │   ├── TodayView.astro    # Vista de rutina diaria
+│   │   ├── HistoryView.astro  # Vista del historial
+│   │   ├── RoutineSelector.astro # Selector de rutinas
+│   │   ├── Modal.astro        # Modal para imágenes
+│   │   └── Toast.astro        # Notificaciones
+│   ├── layouts/
+│   │   └── Layout.astro       # Layout base de la aplicación
+│   ├── pages/
+│   │   └── index.astro        # Página principal (usa componentes)
+│   └── styles/
+│       └── global.css         # Estilos Tailwind + personalizados
 ├── astro.config.mjs           # Configuración de Astro + PWA
 └── package.json
 ```
@@ -133,3 +145,28 @@ Para personalizar los estilos, puedes:
 1. Modificar `tailwind.config.js` para ajustar el tema
 2. Añadir estilos personalizados en `src/styles/global.css`
 3. Usar clases de Tailwind directamente en los componentes Astro
+
+### 🧩 Arquitectura de Componentes
+
+La aplicación utiliza una **arquitectura modular** con componentes Astro reutilizables:
+
+#### **Layout Principal**
+- `Layout.astro`: Estructura base HTML, importa estilos y scripts
+
+#### **Componentes de UI**
+- `Header.astro`: Logo, título y subtítulo de la aplicación
+- `Navigation.astro`: Sistema de pestañas (Rutina de Hoy / Historial)
+- `Modal.astro`: Modal para visualizar imágenes en pantalla completa
+- `Toast.astro`: Sistema de notificaciones
+
+#### **Componentes de Funcionalidad**
+- `TodayView.astro`: Vista completa de la rutina diaria
+- `HistoryView.astro`: Vista del historial de entrenamientos
+- `RoutineSelector.astro`: Selector desplegable de rutinas
+
+#### **Beneficios de la Modularización**
+- ✅ **Reutilización**: Componentes pueden ser reutilizados
+- ✅ **Mantenimiento**: Cada componente tiene una responsabilidad específica
+- ✅ **Escalabilidad**: Fácil añadir nuevas funcionalidades
+- ✅ **Testing**: Componentes pueden ser probados individualmente
+- ✅ **Legibilidad**: Código más limpio y organizado

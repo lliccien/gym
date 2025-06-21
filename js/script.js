@@ -73,12 +73,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const routineSelect = document.getElementById('routine-select');
             const loadRoutineBtn = document.getElementById('load-routine-btn');
             const historyContainer = document.getElementById('history-container');
-            const cardioTypeSelect = document.getElementById('cardio-type');
-            const cardioTimeSelect = document.getElementById('cardio-time');
-            const cardioCaloriesInput = document.getElementById('cardio-calories');
-            const registerCardioBtn = document.getElementById('register-cardio-btn');
-            const cardioSection = document.getElementById('cardio-section');
-            const cardioRecommendation = document.getElementById('cardio-recommendation');
+            
+            // Estos elementos se inicializarán dinámicamente después de crear la interfaz
+            let cardioTypeSelect;
+            let cardioTimeSelect;
+            let cardioCaloriesInput;
+            let registerCardioBtn;
+            let cardioSection;
+            let cardioRecommendation;
 
             // --- CONFIGURACIÓN DE INDEXEDDB ---
             function setupDB() {
@@ -165,15 +167,53 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 
-                // Configurar el selector de cardio con el tipo recomendado
+                // Configurar el selector de cardio con el tipo recomendado (guardamos para aplicar después)
                 updateCardioSelectors(selectedRoutine.cardio);
                 
                 const cardioCalories = calculateCardioCalories(selectedRoutine.cardio.type, selectedRoutine.cardio.duration);
-                let html = `<h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-1">${dayName} - ${selectedRoutine.name}</h3>`;
-                html += `<p class="text-gray-500 mb-1"><strong>Cardio recomendado:</strong> ${selectedRoutine.cardio.type} (${selectedRoutine.cardio.duration} min)</p>`;
-                if (cardioCalories > 0) {
-                    html += `<p class="text-sm font-semibold text-orange-500 mb-6">🔥 ${cardioCalories} Kcal (aprox.)</p>`;
-                }
+                let html = `<h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-4">${dayName} - ${selectedRoutine.name}</h3>`;
+
+                // Agregar la sección de Cardio Personalizado
+                html += `
+                <div id="cardio-section" class="mb-6 p-4 border rounded-lg bg-gradient-to-r from-orange-50 to-amber-50">
+                    <h3 class="text-lg font-bold text-orange-600 mb-3">Cardio Personalizado</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-1 text-gray-700">Tipo de Cardio</label>
+                            <select id="cardio-type" class="p-3 border rounded-md">
+                                <option value="Caminadora">Caminadora</option>
+                                <option value="Bicicleta">Bicicleta</option>
+                                <option value="Elíptica">Elíptica</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-1 text-gray-700">Tiempo (minutos)</label>
+                            <select id="cardio-time" class="p-3 border rounded-md">
+                                <option value="5">5 min</option>
+                                <option value="10">10 min</option>
+                                <option value="15" selected>15 min</option>
+                                <option value="20">20 min</option>
+                                <option value="25">25 min</option>
+                                <option value="30">30 min</option>
+                                <option value="35">35 min</option>
+                                <option value="40">40 min</option>
+                                <option value="45">45 min</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-1 text-gray-700">Calorías quemadas</label>
+                            <input type="number" id="cardio-calories" class="p-3 border rounded-md" placeholder="Automático" inputmode="numeric" min="0">
+                            <p class="text-xs text-gray-500 mt-1">Deja vacío para cálculo automático</p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button id="register-cardio-btn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-md transition duration-300">
+                            Registrar Cardio
+                        </button>
+                    </div>
+                    <div id="cardio-recommendation" class="hidden">
+                    </div>
+                </div>`;
 
                 if (selectedRoutine.exercises.length > 0) {
                     html += '<div class="space-y-6">';
@@ -216,12 +256,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 addRegisterEventListeners();
                 addImageModalListeners();
                 
+                // Actualizar las referencias de los elementos de cardio que ahora son dinámicos
+                updateCardioElements();
+                
                 // Verificar si ya hay cardio registrado para hoy
                 checkTodayCardio();
             }
             
+            function updateCardioElements() {
+                // Actualizar las referencias a los elementos de cardio que ahora son dinámicos
+                cardioTypeSelect = document.getElementById('cardio-type');
+                cardioTimeSelect = document.getElementById('cardio-time');
+                cardioCaloriesInput = document.getElementById('cardio-calories');
+                registerCardioBtn = document.getElementById('register-cardio-btn');
+                cardioSection = document.getElementById('cardio-section');
+                cardioRecommendation = document.getElementById('cardio-recommendation');
+                
+                // Volver a agregar los event listeners
+                registerCardioBtn.addEventListener('click', registerCardio);
+                cardioTypeSelect.addEventListener('change', updateCardioRecommendation);
+                cardioTimeSelect.addEventListener('change', updateCardioRecommendation);
+                
+                // Aplicar la configuración pendiente de cardio
+                applyCardioSelectors();
+            }
+            
             // --- MANEJO DE CARDIO PERSONALIZADO ---
             function updateCardioSelectors(cardioInfo) {
+                // Esta función se llama antes de crear la interfaz, por lo que guardamos la información
+                // para aplicarla después de crear los elementos dinámicamente
+                window.pendingCardioInfo = cardioInfo;
+            }
+            
+            function applyCardioSelectors() {
+                if (!window.pendingCardioInfo) return;
+                
+                const cardioInfo = window.pendingCardioInfo;
+                
                 // Actualizar tipo de cardio
                 cardioTypeSelect.value = cardioInfo.type;
                 
@@ -242,20 +313,6 @@ document.addEventListener('DOMContentLoaded', () => {
             function updateCardioRecommendation() {
                 const type = cardioTypeSelect.value;
                 const time = parseInt(cardioTimeSelect.value, 10);
-                const routineInfo = routine[currentRoutineId];
-                
-                let recommendation = "";
-                
-                if (routineInfo) {
-                    if (routineInfo.exercises.length === 0) {
-                        recommendation = "Día de descanso. Puedes hacer cardio ligero o ejercicios de movilidad.";
-                    } else {
-                        const calories = calculateCardioCalories(type, time);
-                        recommendation = `Recomendación: ${time} minutos de ${type} para complementar tu rutina de ${routineInfo.name}. Quemarás aproximadamente ${calories} Kcal.`;
-                    }
-                }
-                
-                cardioRecommendation.textContent = recommendation;
                 
                 // Actualizar el placeholder de calorías
                 const calories = calculateCardioCalories(type, time);
@@ -319,6 +376,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 registerCardioBtn.textContent = '✓ Cardio Registrado';
                 registerCardioBtn.classList.add('completed');
                 registerCardioBtn.disabled = true;
+                
+                // Eliminar información previa de calorías si existe
+                const nextElement = registerCardioBtn.nextElementSibling;
+                if (nextElement && nextElement.textContent.includes('Kcal')) {
+                    nextElement.remove();
+                }
                 
                 // Agregar información de calorías
                 const type = cardioTypeSelect.value;
@@ -791,22 +854,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // --- INICIALIZACIÓN ---
             setupDB();
-            
-            // --- EVENTOS PARA CARDIO PERSONALIZADO ---
-            registerCardioBtn.addEventListener('click', registerCardio);
-            
-            // Actualizar recomendación cuando cambian los selectores
-            cardioTypeSelect.addEventListener('change', updateCardioRecommendation);
-            cardioTimeSelect.addEventListener('change', updateCardioRecommendation);
-            
-            // Actualizar calorías automáticamente cuando cambia el tipo o tiempo
-            cardioTypeSelect.addEventListener('change', () => {
-                // Actualizar el placeholder con el cálculo aproximado de calorías
-                const type = cardioTypeSelect.value;
-                const duration = parseInt(cardioTimeSelect.value, 10);
-                const calories = calculateCardioCalories(type, duration);
-                cardioCaloriesInput.placeholder = `~${calories} Kcal`;
-            });
             
             cardioTimeSelect.addEventListener('change', () => {
                 // Actualizar el placeholder con el cálculo aproximado de calorías

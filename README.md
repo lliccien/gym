@@ -1,77 +1,139 @@
-# 🗓️ Seguimiento de Gimnasio
+# Gym Tracker - AstroJS PWA
 
-Aplicación web sencilla para registrar y seguir tu rutina de ejercicios semanal.
-
-## 🚀 Descripción
-
-Esta aplicación te permite visualizar tu rutina de gimnasio asignada para cada día de la semana, registrar los ejercicios completados (series, repeticiones y peso), y consultar un historial de tus entrenamientos. Es una herramienta útil para mantener la constancia y observar tu progreso a lo largo del tiempo.
+Una aplicación web progresiva (PWA) para el seguimiento de entrenamientos de gimnasio, migrada de HTML/JS/CSS vanilla a AstroJS con soporte completo para PWA.
 
 ## ✨ Características
 
-*   **Visualización de Rutina Diaria:** Muestra los ejercicios programados para el día actual, incluyendo el nombre del grupo muscular, ejercicios específicos y cardio recomendado.
-*   **Registro de Ejercicios:** Permite ingresar el número de series, repeticiones y el peso levantado para cada ejercicio.
-*   **Confirmación Visual:** Los ejercicios registrados cambian de apariencia para indicar que han sido completados.
-*   **Historial de Entrenamientos:** Guarda un registro de todos los ejercicios completados, ordenados por fecha, y permite eliminar entradas individuales.
-*   **Modal de Imágenes:** Al hacer clic en la imagen de un ejercicio, esta se muestra en pantalla completa para mejor visualización.
-*   **Notificaciones Toast:** Informa al usuario sobre acciones realizadas (ej. ejercicio registrado, registro eliminado).
-*   **Diseño Responsivo:** Adaptado para una correcta visualización en dispositivos móviles y de escritorio.
-*   **Persistencia de Datos:** Utiliza IndexedDB para almacenar los datos de entrenamiento localmente en el navegador del usuario.
+- 📱 **PWA Completa**: Instalable en dispositivos móviles y escritorio
+- 🏋️‍♂️ **Seguimiento de Ejercicios**: 17 máquinas de gimnasio con imágenes
+- ⏱️ **Temporizador de Descanso**: Sistema de descanso entre series
+- 💾 **Almacenamiento Local**: Los datos se guardan automáticamente
+- 🔄 **Funciona Offline**: Service Worker para uso sin conexión
+- 📊 **Registro de Entrenamientos**: Historial completo de sesiones
+- 🎨 **Interfaz Moderna**: Diseño responsive y atractivo
 
-## 🛠️ Tecnologías Utilizadas
+## 🏗️ Estructura del Proyecto
 
-*   **HTML5:** Para la estructura de la aplicación.
-*   **CSS3:** Para los estilos visuales, incluyendo:
-    *   **Tailwind CSS:** Framework CSS para un desarrollo rápido y utilitario.
-    *   Estilos personalizados en `css/style.css`.
-*   **JavaScript (ES6+):** Para la lógica de la aplicación, manipulación del DOM, manejo de eventos y la interacción con IndexedDB.
-*   **IndexedDB:** API del navegador para almacenamiento de datos del lado del cliente.
-*   **Google Fonts:** Para la tipografía (Inter).
-
-## 📁 Estructura del Proyecto
-
-```
-.
-├── css/
-│   └── style.css        # Estilos personalizados
-├── images/
-│   └── gym/             # Imágenes de los ejercicios
-│       ├── ultra-abdominal-crunch.png
-│       ├── ... (otras imágenes)
-├── js/
-│   └── script.js        # Lógica principal de la aplicación
-├── index.html           # Archivo HTML principal
-└── README.md            # Este archivo
+```text
+/
+├── public/
+│   ├── css/
+│   │   └── style.css          # Estilos principales
+│   ├── js/
+│   │   └── gym-app.js         # Lógica principal de la aplicación
+│   ├── images/
+│   │   └── gym/               # Imágenes de las máquinas de ejercicio
+│   ├── manifest.json          # Configuración PWA
+│   └── sw.js                  # Service Worker
+├── src/
+│   └── pages/
+│       └── index.astro        # Página principal
+├── astro.config.mjs           # Configuración de Astro + PWA
+└── package.json
 ```
 
-## ⚙️ Configuración y Uso
+## 🚀 Instalación y Uso
 
-1.  **Clonar el repositorio (opcional):**
-    Si has obtenido el código fuente, puedes clonarlo.
-    ```bash
-    git clone <URL_DEL_REPOSITORIO>
-    cd <NOMBRE_DEL_DIRECTORIO>
-    ```
-2.  **Abrir la aplicación:**
-    Simplemente abre el archivo `index.html` en tu navegador web preferido. No se requiere un servidor web, ya que es una aplicación estática que se ejecuta completamente en el cliente.
+### Requisitos Previos
+- Node.js 18+ 
+- npm o yarn
 
-3.  **Uso de la Aplicación:**
-    *   **Rutina de Hoy:** Al cargar la página, verás la rutina asignada para el día actual.
-        *   Ingresa las series, repeticiones y peso para cada ejercicio.
-        *   Haz clic en el botón "Registrar" para guardar el ejercicio. El botón cambiará a "✓ Registrado".
-        *   Haz clic en la imagen de un ejercicio para verla en pantalla completa.
-    *   **Historial:** Haz clic en la pestaña "Historial" para ver todos los ejercicios que has registrado.
-        *   Puedes eliminar entradas individuales haciendo clic en el botón "Eliminar" correspondiente.
+### Instalación
 
-## 🔮 Posibles Mejoras Futuras
+```bash
+# Instalar dependencias
+npm install
 
-*   Permitir la edición de entradas en el historial.
-*   Agregar la posibilidad de crear y personalizar rutinas directamente en la aplicación.
-*   Implementar gráficos de progreso para visualizar la evolución del peso levantado o repeticiones.
-*   Sincronización de datos con un backend para uso en múltiples dispositivos.
-*   Añadir un temporizador de descanso entre series.
-*   Mejorar la accesibilidad (ARIA).
-*   Internacionalización (i18n) para soportar múltiples idiomas.
+# Iniciar servidor de desarrollo
+npm run dev
 
----
+# Construir para producción
+npm run build
 
-Hecho con ❤️ para los entusiastas del fitness.
+# Previsualizar build de producción
+npm run preview
+```
+
+## 🧞 Comandos Disponibles
+
+| Comando                   | Descripción                                      |
+| :------------------------ | :----------------------------------------------- |
+| `npm install`             | Instala las dependencias                        |
+| `npm run dev`             | Inicia servidor de desarrollo                   |
+| `npm run build`           | Construye la aplicación para producción         |
+| `npm run preview`         | Previsualiza la build localmente                |
+| `npm run astro ...`       | Ejecuta comandos CLI de Astro                   |
+
+## 💡 Funcionalidades Principales
+
+### 🏋️‍♂️ Seguimiento de Ejercicios
+- Selección de 17 máquinas diferentes
+- Registro de peso, repeticiones y series
+- Notas personalizadas por ejercicio
+
+### ⏱️ Sistema de Descanso
+- Temporizador configurable entre series
+- Notificaciones visuales y sonoras
+- Control de pausa/reanudación
+
+### 📊 Historial de Entrenamientos
+- Registro automático de todas las sesiones
+- Visualización de progreso por ejercicio
+- Exportación de datos
+
+### � Características PWA
+- Instalable en dispositivos móviles
+- Funciona completamente offline
+- Sincronización automática cuando hay conexión
+
+## 🔧 Tecnologías Utilizadas
+
+- **AstroJS**: Framework moderno para sitios web
+- **Tailwind CSS**: Framework de CSS utilitario para estilos rápidos y consistentes
+- **Vite PWA**: Plugin para funcionalidades PWA
+- **Workbox**: Service Worker para cache y offline
+- **Vanilla JavaScript**: Lógica de aplicación
+- **Web APIs**: LocalStorage, Notifications, etc.
+
+## 📦 Migración desde Versión Anterior
+
+Esta aplicación fue migrada completamente desde una versión vanilla (HTML/JS/CSS) a AstroJS + Tailwind CSS manteniendo:
+- ✅ Toda la funcionalidad original
+- ✅ Datos de usuario existentes
+- ✅ Soporte PWA completo
+- ✅ Rendimiento mejorado
+- ✅ Mejor estructura de código
+- ✅ Estilos modernos con Tailwind CSS
+
+## 📁 Archivos Legacy
+
+Los archivos originales (HTML/JS/CSS vanilla) se encuentran en la carpeta `legacy-files/` para referencia histórica. Estos archivos ya no son necesarios para el funcionamiento de la aplicación migrada.
+
+## 🎯 Próximas Mejoras
+
+- [ ] Sincronización en la nube
+- [ ] Gráficos de progreso
+- [ ] Planes de entrenamiento personalizados
+- [ ] Integración con wearables
+- [ ] Modo multijugador/competitivo
+
+## 🎨 Configuración de Estilos
+
+La aplicación utiliza **Tailwind CSS** para los estilos, configurado de la siguiente manera:
+
+### Estructura de Estilos
+- `src/styles/global.css`: Estilos globales, importa Tailwind y contiene estilos personalizados
+- `tailwind.config.js`: Configuración de Tailwind CSS
+- `astro.config.mjs`: Configuración de Astro con plugin de Tailwind
+
+### Características de Diseño
+- **Mobile-first**: Diseño responsive desde dispositivos móviles
+- **Dark mode ready**: Preparado para modo oscuro (futuro)
+- **Componentes reutilizables**: Clases utilitarias de Tailwind
+- **Estilos personalizados**: Para funcionalidades específicas de la app
+
+### Personalización
+Para personalizar los estilos, puedes:
+1. Modificar `tailwind.config.js` para ajustar el tema
+2. Añadir estilos personalizados en `src/styles/global.css`
+3. Usar clases de Tailwind directamente en los componentes Astro

@@ -153,6 +153,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Verificar si ya hay cardio registrado para hoy
                     checkTodayCardio();
+                    
+                    // Verificar si ya hay ejercicios registrados para hoy
+                    checkTodayExercises();
                 };
                 request.onerror = (e) => console.error('Error al abrir IndexedDB:', e.target.errorCode);
             }
@@ -293,6 +296,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Verificar si ya hay cardio registrado para hoy
                 checkTodayCardio();
+                
+                // Verificar si ya hay ejercicios registrados para hoy
+                checkTodayExercises();
             }
             
             function updateCardioElements() {
@@ -307,7 +313,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Volver a agregar los event listeners
                 registerCardioBtn.addEventListener('click', registerCardio);
                 cardioTypeSelect.addEventListener('change', updateCardioRecommendation);
-                cardioTimeSelect.addEventListener('change', updateCardioRecommendation);
+                cardioTimeSelect.addEventListener('change', () => {
+                    updateCardioRecommendation();
+                    
+                    // Actualizar el placeholder con el cálculo aproximado de calorías
+                    const type = cardioTypeSelect.value;
+                    const duration = parseInt(cardioTimeSelect.value, 10);
+                    const calories = calculateCardioCalories(type, duration);
+                    cardioCaloriesInput.placeholder = `~${calories} Kcal`;
+                });
                 
                 // Aplicar la configuración pendiente de cardio
                 applyCardioSelectors();
@@ -404,6 +418,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             function markCardioAsCompleted() {
+                // Verificar si los elementos existen
+                if (!cardioSection || !registerCardioBtn || !cardioTypeSelect || !cardioTimeSelect || !cardioCaloriesInput) {
+                    return;
+                }
+                
                 cardioSection.classList.add('completed');
                 registerCardioBtn.textContent = '✓ Cardio Registrado';
                 registerCardioBtn.classList.add('completed');
@@ -454,15 +473,19 @@ document.addEventListener('DOMContentLoaded', () => {
                             cardioFound = true;
                             // Actualizar la UI para mostrar el cardio como completado
                             const cardioData = cursor.value;
-                            cardioTypeSelect.value = cardioData.type;
-                            cardioTimeSelect.value = cardioData.duration;
-                            cardioCaloriesInput.value = cardioData.calories;
-                            markCardioAsCompleted();
+                            
+                            // Verificar que los elementos existan antes de acceder a ellos
+                            if (cardioTypeSelect && cardioTimeSelect && cardioCaloriesInput) {
+                                cardioTypeSelect.value = cardioData.type;
+                                cardioTimeSelect.value = cardioData.duration;
+                                cardioCaloriesInput.value = cardioData.calories;
+                                markCardioAsCompleted();
+                            }
                         }
                         cursor.continue();
                     } else {
                         // Si no se encontró cardio para hoy, asegurarse de que la UI esté en estado "no completado"
-                        if (!cardioFound) {
+                        if (!cardioFound && cardioSection && registerCardioBtn) {
                             cardioSection.classList.remove('completed');
                             registerCardioBtn.textContent = 'Registrar Cardio';
                             registerCardioBtn.classList.remove('completed');
@@ -533,10 +556,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         e.target.disabled = true;
                         e.target.classList.replace('bg-blue-500', 'bg-green-600');
 
-                        const calorieDisplay = document.createElement('div');
-                        calorieDisplay.className = 'text-center md:text-left text-sm font-semibold text-orange-500 mt-2';
-                        calorieDisplay.textContent = `🔥 ${calories} Kcal (aprox.)`;
-                        e.target.insertAdjacentElement('afterend', calorieDisplay);
+                        // Verificar si ya existe un elemento de calorías para evitar duplicados
+                        const existingCalorieDisplay = e.target.nextElementSibling;
+                        if (!existingCalorieDisplay || !existingCalorieDisplay.textContent.includes('Kcal')) {
+                            const calorieDisplay = document.createElement('div');
+                            calorieDisplay.className = 'text-center md:text-left text-sm font-semibold text-orange-500 mt-2';
+                            calorieDisplay.textContent = `🔥 ${calories} Kcal (aprox.)`;
+                            e.target.insertAdjacentElement('afterend', calorieDisplay);
+                        }
                     });
                 });
             }
@@ -893,11 +920,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- INICIALIZACIÓN ---
             setupDB();
             
-            cardioTimeSelect.addEventListener('change', () => {
-                // Actualizar el placeholder con el cálculo aproximado de calorías
-                const type = cardioTypeSelect.value;
-                const duration = parseInt(cardioTimeSelect.value, 10);
-                const calories = calculateCardioCalories(type, duration);
-                cardioCaloriesInput.placeholder = `~${calories} Kcal`;
-            });
+            // El event listener para cardioTimeSelect se configurará en updateCardioElements()
+            // después de que los elementos sean inicializados
         });

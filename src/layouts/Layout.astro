@@ -1,0 +1,38 @@
+---
+export interface Props {
+	title?: string;
+	description?: string;
+}
+
+const { 
+	title = "Seguimiento de Gimnasio", 
+	description = "Aplicación para registrar y seguir tu rutina de ejercicios semanal." 
+} = Astro.props;
+
+import '../styles/global.css';
+---
+
+<html lang="es">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>{title}</title>
+		<meta name="generator" content={Astro.generator} />
+		<meta name="description" content={description}>
+		
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+		
+		<link rel="icon" type="image/png" href="/images/gym/icons/icon-192x192.png">
+		<meta name="theme-color" content="#3b82f6">
+	</head>
+	<body class="bg-gray-100 text-gray-800">
+		<div class="container mx-auto p-3 sm:p-4 md:p-6 max-w-4xl">
+			<slot />
+		</div>
+
+		<!-- Script principal -->
+		<script src="/js/gym-app.js" is:inline></script>
+	</body>
+</html>

@@ -39,6 +39,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 return { type, duration };
             }
 
+            // --- UTILIDADES DE FECHA ---
+            function getTodayDateString() {
+                // Obtiene la fecha actual en la zona horaria local del usuario
+                const today = new Date();
+                
+                // Formatea la fecha como YYYY-MM-DD
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                
+                // Retorna la fecha en formato ISO (YYYY-MM-DDT00:00:00.000Z)
+                // pero usando 12:00 para evitar problemas de cambio de día por zona horaria
+                return `${year}-${month}-${day}T12:00:00.000Z`;
+            }
+            
+            function formatLocalDate(dateString) {
+                // Convierte una fecha en formato ISO a un objeto Date
+                const date = new Date(dateString);
+                
+                // Formatea la fecha según la configuración regional del navegador
+                return date.toLocaleDateString('es-ES', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+            }
+
             // --- ESTRUCTURA DE LA RUTINA ---
             const routine = {
                 1: { name: "Piernas & Glúteos", cardio: { type: "Caminadora", duration: 15 }, exercises: ["Ultra Leg Press", "Ultra Leg Extension", "Ultra Glute", "Ultra Abdominal Crunch", "Ultra Back Extension"] },
@@ -115,7 +143,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 request.onsuccess = (e) => {
                     db = e.target.result;
                     populateRoutineSelector();
-                    const todayIndex = new Date().getDay();
+                    
+                    // Obtener el día de la semana usando la fecha local del usuario
+                    const today = new Date();
+                    const todayIndex = today.getDay(); // 0-6 (Domingo-Sábado)
+                    
                     routineSelect.value = todayIndex;
                     displayWorkout(todayIndex);
                     
@@ -331,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 const cardioEntry = {
-                    date: new Date().toISOString(),
+                    date: getTodayDateString(),
                     type: type,
                     duration: duration,
                     calories: calories,
@@ -399,9 +431,12 @@ document.addEventListener('DOMContentLoaded', () => {
             function checkTodayCardio() {
                 if (!db) return;
                 
-                const today = new Date();
-                const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-                const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString();
+                // Obtener la fecha de hoy (al comienzo del día) en la zona horaria local
+                const todayDate = getTodayDateString().split('T')[0];
+                
+                // Establecer el rango para buscar registros de hoy
+                const startOfDay = todayDate + 'T00:00:00.000Z';
+                const endOfDay = todayDate + 'T23:59:59.999Z';
                 
                 const transaction = db.transaction(['cardio'], 'readonly');
                 const store = transaction.objectStore('cardio');
@@ -483,8 +518,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         const calories = calculateCalories(series, reps, weight);
+                        
                         addWorkoutEntry({
-                            date: new Date().toISOString(),
+                            date: getTodayDateString(),
                             exercise: exerciseName,
                             series: series, reps: reps, weight: weight,
                             calories: calories,
@@ -732,7 +768,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     const totalCalories = totalStrengthCalories + cardioCalories;
-                    const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    
+                    // Usar nuestra función auxiliar para formatear la fecha de manera consistente
+                    const formattedDate = formatLocalDate(date + 'T12:00:00.000Z');
                     
                     // Cálculo de completitud de la rutina
                     const totalExercises = routineInfo.exercises ? routineInfo.exercises.length + 1 : 1; // +1 para incluir el cardio

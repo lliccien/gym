@@ -6,10 +6,11 @@ Una aplicación web progresiva (PWA) para el seguimiento de entrenamientos de gi
 
 - 📱 **PWA Completa**: Instalable en dispositivos móviles y escritorio
 - 🏋️‍♂️ **Seguimiento de Ejercicios**: 17 máquinas de gimnasio con imágenes
+- 📊 **Datos Antropométricos**: Registro completo de medidas corporales y progreso físico
 - ⏱️ **Temporizador de Descanso**: Sistema de descanso entre series
 - 💾 **Almacenamiento Local**: Los datos se guardan automáticamente
 - 🔄 **Funciona Offline**: Service Worker para uso sin conexión
-- 📊 **Registro de Entrenamientos**: Historial completo de sesiones
+- � **Historial y Progreso**: Seguimiento completo de entrenamientos y evolución física
 - 🎨 **Interfaz Moderna**: Diseño responsive y atractivo
 
 ## 🏗️ Estructura del Proyecto
@@ -28,18 +29,25 @@ Una aplicación web progresiva (PWA) para el seguimiento de entrenamientos de gi
 ├── src/
 │   ├── components/            # Componentes reutilizables
 │   │   ├── Header.astro       # Encabezado con logo y título
-│   │   ├── Navigation.astro   # Pestañas de navegación
+│   │   ├── Navigation.astro   # Navegación principal
 │   │   ├── TodayView.astro    # Vista de rutina diaria
 │   │   ├── HistoryView.astro  # Vista del historial
 │   │   ├── RoutineSelector.astro # Selector de rutinas
 │   │   ├── Modal.astro        # Modal para imágenes
-│   │   └── Toast.astro        # Notificaciones
+│   │   ├── Toast.astro        # Notificaciones
+│   │   └── antropometria/     # Componentes de antropometría
+│   │       ├── AnthropometryForm.astro    # Formulario de registro
+│   │       ├── ProgressCharts.astro       # Gráficos de progreso
+│   │       └── StatsCard.astro           # Tarjetas de estadísticas
 │   ├── layouts/
 │   │   └── Layout.astro       # Layout base de la aplicación
 │   ├── pages/
-│   │   └── index.astro        # Página principal (usa componentes)
-│   └── styles/
-│       └── global.css         # Estilos Tailwind + personalizados
+│   │   ├── index.astro        # Página principal (entrenamientos)
+│   │   └── antropometria.astro # Página de datos antropométricos
+│   ├── styles/
+│   │   └── global.css         # Estilos Tailwind + personalizados
+│   └── utils/
+│       └── anthropometry.js   # Gestión de datos antropométricos
 ├── astro.config.mjs           # Configuración de Astro + PWA
 └── package.json
 ```
@@ -83,14 +91,22 @@ npm run preview
 - Registro de peso, repeticiones y series
 - Notas personalizadas por ejercicio
 
+### 📊 Datos Antropométricos **[NUEVO]**
+- **Medidas Corporales**: Peso, altura, IMC automático, circunferencias completas
+- **Composición Corporal**: Masa muscular, grasa corporal, agua, metabolismo basal
+- **Métricas de Salud**: Frecuencia cardíaca, presión arterial
+- **Gráficos de Progreso**: Visualización temporal de la evolución
+- **Historial Completo**: Registro cronológico con edición y exportación
+
 ### ⏱️ Sistema de Descanso
 - Temporizador configurable entre series
 - Notificaciones visuales y sonoras
 - Control de pausa/reanudación
 
-### 📊 Historial de Entrenamientos
+### � Historial y Análisis
 - Registro automático de todas las sesiones
 - Visualización de progreso por ejercicio
+- Estadísticas de evolución antropométrica
 - Exportación de datos
 
 ### � Características PWA

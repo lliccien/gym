@@ -1,0 +1,369 @@
+---
+// AnthropometryForm.astro - Formulario para registro de datos antropométricos
+---
+
+<div class="max-w-4xl mx-auto">
+	<form id="anthropometry-form" class="space-y-8">
+		<!-- Información básica -->
+		<div>
+			<h3 class="text-lg font-semibold text-gray-900 mb-4">📏 Información Básica</h3>
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<div>
+					<label for="date" class="block text-sm font-medium text-gray-700 mb-2">Fecha</label>
+					<input type="date" id="date" name="date" 
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="weight" class="block text-sm font-medium text-gray-700 mb-2">Peso (kg)</label>
+					<input type="number" id="weight" name="weight" step="0.1" min="30" max="300"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						placeholder="70.5">
+				</div>
+				<div>
+					<label for="height" class="block text-sm font-medium text-gray-700 mb-2">Altura (cm)</label>
+					<input type="number" id="height" name="height" min="100" max="250"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+						placeholder="175">
+				</div>
+			</div>
+			<div class="mt-4">
+				<div class="bg-blue-50 border border-blue-200 rounded-md p-3">
+					<p class="text-sm text-blue-800">
+						<span class="font-medium">IMC:</span> 
+						<span id="bmi-display" class="font-semibold">--</span>
+						<span id="bmi-category" class="ml-2 text-xs"></span>
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Circunferencias -->
+		<div>
+			<h3 class="text-lg font-semibold text-gray-900 mb-4">📐 Circunferencias (cm)</h3>
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				<div>
+					<label for="neck" class="block text-sm font-medium text-gray-700 mb-2">Cuello</label>
+					<input type="number" id="neck" name="neck" step="0.5" min="25" max="60"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="chest" class="block text-sm font-medium text-gray-700 mb-2">Pecho</label>
+					<input type="number" id="chest" name="chest" step="0.5" min="60" max="150"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="waist" class="block text-sm font-medium text-gray-700 mb-2">Cintura</label>
+					<input type="number" id="waist" name="waist" step="0.5" min="50" max="150"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="hip" class="block text-sm font-medium text-gray-700 mb-2">Cadera</label>
+					<input type="number" id="hip" name="hip" step="0.5" min="60" max="150"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="armRight" class="block text-sm font-medium text-gray-700 mb-2">Brazo Derecho</label>
+					<input type="number" id="armRight" name="armRight" step="0.5" min="20" max="60"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="armLeft" class="block text-sm font-medium text-gray-700 mb-2">Brazo Izquierdo</label>
+					<input type="number" id="armLeft" name="armLeft" step="0.5" min="20" max="60"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="thighRight" class="block text-sm font-medium text-gray-700 mb-2">Muslo Derecho</label>
+					<input type="number" id="thighRight" name="thighRight" step="0.5" min="30" max="80"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="thighLeft" class="block text-sm font-medium text-gray-700 mb-2">Muslo Izquierdo</label>
+					<input type="number" id="thighLeft" name="thighLeft" step="0.5" min="30" max="80"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="calfRight" class="block text-sm font-medium text-gray-700 mb-2">Pantorrilla Derecha</label>
+					<input type="number" id="calfRight" name="calfRight" step="0.5" min="20" max="50"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+			</div>
+		</div>
+
+		<!-- Composición Corporal -->
+		<div>
+			<h3 class="text-lg font-semibold text-gray-900 mb-4">💪 Composición Corporal</h3>
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				<div>
+					<label for="muscleMassPercentage" class="block text-sm font-medium text-gray-700 mb-2">Masa Muscular (%)</label>
+					<input type="number" id="muscleMassPercentage" name="muscleMassPercentage" step="0.1" min="20" max="60"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="bodyFatPercentage" class="block text-sm font-medium text-gray-700 mb-2">Grasa Corporal (%)</label>
+					<input type="number" id="bodyFatPercentage" name="bodyFatPercentage" step="0.1" min="3" max="50"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="waterPercentage" class="block text-sm font-medium text-gray-700 mb-2">Agua Corporal (%)</label>
+					<input type="number" id="waterPercentage" name="waterPercentage" step="0.1" min="40" max="75"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="boneMass" class="block text-sm font-medium text-gray-700 mb-2">Masa Ósea (kg)</label>
+					<input type="number" id="boneMass" name="boneMass" step="0.1" min="1" max="10"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="basalMetabolism" class="block text-sm font-medium text-gray-700 mb-2">Metabolismo Basal (kcal)</label>
+					<input type="number" id="basalMetabolism" name="basalMetabolism" min="800" max="3000"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+			</div>
+		</div>
+
+		<!-- Métricas de Salud -->
+		<div>
+			<h3 class="text-lg font-semibold text-gray-900 mb-4">❤️ Métricas de Salud</h3>
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				<div>
+					<label for="restingHeartRate" class="block text-sm font-medium text-gray-700 mb-2">FC Reposo (bpm)</label>
+					<input type="number" id="restingHeartRate" name="restingHeartRate" min="40" max="120"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="bloodPressureSystolic" class="block text-sm font-medium text-gray-700 mb-2">Presión Sistólica</label>
+					<input type="number" id="bloodPressureSystolic" name="bloodPressureSystolic" min="80" max="200"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+				<div>
+					<label for="bloodPressureDiastolic" class="block text-sm font-medium text-gray-700 mb-2">Presión Diastólica</label>
+					<input type="number" id="bloodPressureDiastolic" name="bloodPressureDiastolic" min="40" max="130"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				</div>
+			</div>
+		</div>
+
+		<!-- Notas -->
+		<div>
+			<label for="notes" class="block text-sm font-medium text-gray-700 mb-2">📝 Notas (opcional)</label>
+			<textarea id="notes" name="notes" rows="3"
+				class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+				placeholder="Observaciones, condiciones especiales, etc."></textarea>
+		</div>
+
+		<!-- Botones de acción -->
+		<div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+			<button type="submit" id="save-button"
+				class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+				💾 Guardar Registro
+			</button>
+			<button type="button" id="clear-button"
+				class="flex-1 bg-gray-200 text-gray-800 py-3 px-6 rounded-lg font-medium hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
+				🗑️ Limpiar Formulario
+			</button>
+		</div>
+	</form>
+</div>
+
+<script>
+	import { AnthropometryManager } from '../../utils/anthropometry.js';
+
+	document.addEventListener('DOMContentLoaded', function() {
+		const form = document.getElementById('anthropometry-form');
+		const anthropometryManager = new AnthropometryManager();
+		let editingRecordId = null;
+
+		// Set today's date as default
+		const dateInput = document.getElementById('date');
+		dateInput.value = new Date().toISOString().split('T')[0];
+
+		// BMI calculation
+		const weightInput = document.getElementById('weight');
+		const heightInput = document.getElementById('height');
+		const bmiDisplay = document.getElementById('bmi-display');
+		const bmiCategory = document.getElementById('bmi-category');
+
+		function calculateBMI() {
+			const weight = parseFloat(weightInput.value);
+			const height = parseFloat(heightInput.value);
+
+			if (weight && height) {
+				const bmi = weight / Math.pow(height / 100, 2);
+				bmiDisplay.textContent = bmi.toFixed(1);
+				
+				let category = '';
+				let categoryClass = '';
+				
+				if (bmi < 18.5) {
+					category = 'Bajo peso';
+					categoryClass = 'text-blue-600';
+				} else if (bmi < 25) {
+					category = 'Normal';
+					categoryClass = 'text-green-600';
+				} else if (bmi < 30) {
+					category = 'Sobrepeso';
+					categoryClass = 'text-yellow-600';
+				} else {
+					category = 'Obesidad';
+					categoryClass = 'text-red-600';
+				}
+				
+				bmiCategory.textContent = `(${category})`;
+				bmiCategory.className = `ml-2 text-xs font-medium ${categoryClass}`;
+			} else {
+				bmiDisplay.textContent = '--';
+				bmiCategory.textContent = '';
+			}
+		}
+
+		weightInput.addEventListener('input', calculateBMI);
+		heightInput.addEventListener('input', calculateBMI);
+
+		// Form submission
+		form.addEventListener('submit', async function(e) {
+			e.preventDefault();
+			
+			const saveButton = document.getElementById('save-button');
+			const originalText = saveButton.textContent;
+			
+			try {
+				saveButton.textContent = '💾 Guardando...';
+				saveButton.disabled = true;
+
+				const formData = new FormData(form);
+				const record = {
+					id: editingRecordId || crypto.randomUUID(),
+					date: formData.get('date'),
+					weight: formData.get('weight') ? parseFloat(formData.get('weight')) : null,
+					height: formData.get('height') ? parseFloat(formData.get('height')) : null,
+					circumferences: {
+						neck: formData.get('neck') ? parseFloat(formData.get('neck')) : null,
+						chest: formData.get('chest') ? parseFloat(formData.get('chest')) : null,
+						waist: formData.get('waist') ? parseFloat(formData.get('waist')) : null,
+						hip: formData.get('hip') ? parseFloat(formData.get('hip')) : null,
+						armRight: formData.get('armRight') ? parseFloat(formData.get('armRight')) : null,
+						armLeft: formData.get('armLeft') ? parseFloat(formData.get('armLeft')) : null,
+						thighRight: formData.get('thighRight') ? parseFloat(formData.get('thighRight')) : null,
+						thighLeft: formData.get('thighLeft') ? parseFloat(formData.get('thighLeft')) : null,
+						calfRight: formData.get('calfRight') ? parseFloat(formData.get('calfRight')) : null,
+					},
+					bodyComposition: {
+						muscleMassPercentage: formData.get('muscleMassPercentage') ? parseFloat(formData.get('muscleMassPercentage')) : null,
+						bodyFatPercentage: formData.get('bodyFatPercentage') ? parseFloat(formData.get('bodyFatPercentage')) : null,
+						waterPercentage: formData.get('waterPercentage') ? parseFloat(formData.get('waterPercentage')) : null,
+						boneMass: formData.get('boneMass') ? parseFloat(formData.get('boneMass')) : null,
+						basalMetabolism: formData.get('basalMetabolism') ? parseInt(formData.get('basalMetabolism')) : null,
+					},
+					healthMetrics: {
+						restingHeartRate: formData.get('restingHeartRate') ? parseInt(formData.get('restingHeartRate')) : null,
+						bloodPressureSystolic: formData.get('bloodPressureSystolic') ? parseInt(formData.get('bloodPressureSystolic')) : null,
+						bloodPressureDiastolic: formData.get('bloodPressureDiastolic') ? parseInt(formData.get('bloodPressureDiastolic')) : null,
+					},
+					notes: formData.get('notes') || null
+				};
+
+				// Calculate BMI if weight and height are provided
+				if (record.weight && record.height) {
+					record.bmi = record.weight / Math.pow(record.height / 100, 2);
+				}
+
+				await anthropometryManager.saveRecord(record);
+
+				// Dispatch event to refresh other components
+				const event = new CustomEvent('anthropometryRecordSaved', { detail: record });
+				document.dispatchEvent(event);
+
+				// Show success message
+				showToast(editingRecordId ? 'Registro actualizado correctamente' : 'Registro guardado correctamente', 'success');
+
+				// Reset form if it was a new record
+				if (!editingRecordId) {
+					clearForm();
+				}
+
+				editingRecordId = null;
+				saveButton.textContent = '💾 Guardar Registro';
+
+			} catch (error) {
+				console.error('Error saving record:', error);
+				showToast('Error al guardar el registro', 'error');
+			} finally {
+				saveButton.disabled = false;
+				saveButton.textContent = originalText;
+			}
+		});
+
+		// Clear button
+		document.getElementById('clear-button').addEventListener('click', clearForm);
+
+		function clearForm() {
+			form.reset();
+			dateInput.value = new Date().toISOString().split('T')[0];
+			bmiDisplay.textContent = '--';
+			bmiCategory.textContent = '';
+			editingRecordId = null;
+			document.getElementById('save-button').textContent = '💾 Guardar Registro';
+		}
+
+		// Listen for populate form event
+		document.addEventListener('populateForm', function(e) {
+			const record = e.detail;
+			editingRecordId = record.id;
+
+			// Populate basic info
+			document.getElementById('date').value = record.date;
+			if (record.weight) document.getElementById('weight').value = record.weight;
+			if (record.height) document.getElementById('height').value = record.height;
+
+			// Populate circumferences
+			Object.keys(record.circumferences || {}).forEach(key => {
+				const input = document.getElementById(key);
+				if (input && record.circumferences[key]) {
+					input.value = record.circumferences[key];
+				}
+			});
+
+			// Populate body composition
+			Object.keys(record.bodyComposition || {}).forEach(key => {
+				const input = document.getElementById(key);
+				if (input && record.bodyComposition[key]) {
+					input.value = record.bodyComposition[key];
+				}
+			});
+
+			// Populate health metrics
+			Object.keys(record.healthMetrics || {}).forEach(key => {
+				const input = document.getElementById(key);
+				if (input && record.healthMetrics[key]) {
+					input.value = record.healthMetrics[key];
+				}
+			});
+
+			// Populate notes
+			if (record.notes) {
+				document.getElementById('notes').value = record.notes;
+			}
+
+			// Update BMI display
+			calculateBMI();
+
+			// Update button text
+			document.getElementById('save-button').textContent = '✏️ Actualizar Registro';
+		});
+	});
+
+	function showToast(message, type = 'info') {
+		const toast = document.createElement('div');
+		toast.className = `fixed top-4 right-4 px-4 py-2 rounded-lg text-white z-50 ${
+			type === 'success' ? 'bg-green-500' : 
+			type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+		}`;
+		toast.textContent = message;
+		
+		document.body.appendChild(toast);
+		
+		setTimeout(() => {
+			toast.remove();
+		}, 3000);
+	}
+</script>

@@ -1,0 +1,360 @@
+---
+// ProgressCharts.astro - Componente para mostrar gráficos de progreso
+---
+
+<div class="max-w-6xl mx-auto space-y-8">
+	<!-- Selector de período -->
+	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+		<h3 class="text-lg font-semibold text-gray-900">📈 Evolución de Datos</h3>
+		<div class="flex gap-2">
+			<select id="period-selector" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				<option value="30">Últimos 30 días</option>
+				<option value="90">Últimos 3 meses</option>
+				<option value="180">Últimos 6 meses</option>
+				<option value="365">Último año</option>
+				<option value="all">Todo el tiempo</option>
+			</select>
+			<select id="metric-selector" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+				<option value="weight">Peso</option>
+				<option value="bmi">IMC</option>
+				<option value="bodyFat">Grasa Corporal</option>
+				<option value="muscleMass">Masa Muscular</option>
+				<option value="waist">Cintura</option>
+			</select>
+		</div>
+	</div>
+
+	<!-- Gráfico principal -->
+	<div class="bg-white rounded-lg shadow-lg p-6">
+		<div id="chart-container" class="h-96 w-full">
+			<div class="flex items-center justify-center h-full text-gray-500">
+				<div class="text-center">
+					<div class="text-4xl mb-4">📊</div>
+					<p class="text-lg mb-2">Cargando gráfico...</p>
+					<p class="text-sm">Selecciona un período y métrica para ver tu progreso</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Estadísticas rápidas -->
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="quick-stats">
+		<div class="bg-white rounded-lg shadow-md p-4">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Primer Registro</p>
+					<p class="text-lg font-semibold text-gray-900" id="first-record">--</p>
+				</div>
+				<div class="text-2xl">📅</div>
+			</div>
+		</div>
+		<div class="bg-white rounded-lg shadow-md p-4">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Último Registro</p>
+					<p class="text-lg font-semibold text-gray-900" id="last-record">--</p>
+				</div>
+				<div class="text-2xl">📊</div>
+			</div>
+		</div>
+		<div class="bg-white rounded-lg shadow-md p-4">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Cambio Total</p>
+					<p class="text-lg font-semibold text-gray-900" id="total-change">--</p>
+				</div>
+				<div class="text-2xl">📈</div>
+			</div>
+		</div>
+		<div class="bg-white rounded-lg shadow-md p-4">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium text-gray-600">Tendencia</p>
+					<p class="text-lg font-semibold text-gray-900" id="trend">--</p>
+				</div>
+				<div class="text-2xl">🎯</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Tabla de datos -->
+	<div class="bg-white rounded-lg shadow-lg">
+		<div class="px-6 py-4 border-b border-gray-200">
+			<h4 class="text-lg font-semibold text-gray-900">📋 Datos del Período</h4>
+		</div>
+		<div class="overflow-x-auto">
+			<table class="min-w-full divide-y divide-gray-200" id="data-table">
+				<thead class="bg-gray-50">
+					<tr>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cambio</th>
+					</tr>
+				</thead>
+				<tbody class="bg-white divide-y divide-gray-200" id="data-table-body">
+					<tr>
+						<td colspan="3" class="px-6 py-4 text-center text-gray-500">
+							Sin datos para mostrar
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+<script>
+	import { AnthropometryManager } from '../../utils/anthropometry.js';
+
+	document.addEventListener('DOMContentLoaded', function() {
+		const anthropometryManager = new AnthropometryManager();
+		const periodSelector = document.getElementById('period-selector');
+		const metricSelector = document.getElementById('metric-selector');
+		const chartContainer = document.getElementById('chart-container');
+
+		// Load chart when selectors change
+		periodSelector.addEventListener('change', loadChart);
+		metricSelector.addEventListener('change', loadChart);
+
+		// Listen for loadProgressCharts event
+		document.addEventListener('loadProgressCharts', loadChart);
+
+		async function loadChart() {
+			const period = periodSelector.value;
+			const metric = metricSelector.value;
+
+			try {
+				const records = await anthropometryManager.getRecordsForPeriod(period);
+				
+				if (records.length === 0) {
+					showNoDataMessage();
+					return;
+				}
+
+				// Extract data for the selected metric
+				const chartData = extractMetricData(records, metric);
+				
+				// Update quick stats
+				updateQuickStats(chartData, metric);
+				
+				// Update data table
+				updateDataTable(chartData, metric);
+				
+				// Render chart (simplified version using CSS/HTML)
+				renderSimpleChart(chartData, metric);
+
+			} catch (error) {
+				console.error('Error loading chart data:', error);
+				showErrorMessage();
+			}
+		}
+
+		function extractMetricData(records, metric) {
+			const data = [];
+			
+			records.forEach(record => {
+				let value = null;
+				let unit = '';
+				
+				switch (metric) {
+					case 'weight':
+						value = record.weight;
+						unit = 'kg';
+						break;
+					case 'bmi':
+						value = record.bmi;
+						unit = '';
+						break;
+					case 'bodyFat':
+						value = record.bodyComposition?.bodyFatPercentage;
+						unit = '%';
+						break;
+					case 'muscleMass':
+						value = record.bodyComposition?.muscleMassPercentage;
+						unit = '%';
+						break;
+					case 'waist':
+						value = record.circumferences?.waist;
+						unit = 'cm';
+						break;
+				}
+				
+				if (value !== null && value !== undefined) {
+					data.push({
+						date: new Date(record.date),
+						value: value,
+						unit: unit
+					});
+				}
+			});
+			
+			// Sort by date
+			data.sort((a, b) => a.date.getTime() - b.date.getTime());
+			
+			return data;
+		}
+
+		function updateQuickStats(data, metric) {
+			const firstRecord = document.getElementById('first-record');
+			const lastRecord = document.getElementById('last-record');
+			const totalChange = document.getElementById('total-change');
+			const trend = document.getElementById('trend');
+
+			if (data.length === 0) {
+				firstRecord.textContent = '--';
+				lastRecord.textContent = '--';
+				totalChange.textContent = '--';
+				trend.textContent = '--';
+				return;
+			}
+
+			const first = data[0];
+			const last = data[data.length - 1];
+			const change = last.value - first.value;
+			const changePercent = ((change / first.value) * 100).toFixed(1);
+
+			firstRecord.textContent = `${first.value}${first.unit}`;
+			lastRecord.textContent = `${last.value}${last.unit}`;
+			
+			const changeText = change >= 0 ? `+${change.toFixed(1)}` : change.toFixed(1);
+			totalChange.textContent = `${changeText}${first.unit}`;
+			
+			// Determine trend
+			let trendText = '';
+			if (Math.abs(change) < 0.1) {
+				trendText = 'Estable';
+			} else if (change > 0) {
+				trendText = metric === 'weight' || metric === 'bodyFat' || metric === 'waist' ? 'Subiendo' : 'Mejorando';
+			} else {
+				trendText = metric === 'weight' || metric === 'bodyFat' || metric === 'waist' ? 'Bajando' : 'Disminuyendo';
+			}
+			
+			trend.textContent = trendText;
+		}
+
+		function updateDataTable(data, metric) {
+			const tableBody = document.getElementById('data-table-body');
+			
+			if (data.length === 0) {
+				tableBody.innerHTML = `
+					<tr>
+						<td colspan="3" class="px-6 py-4 text-center text-gray-500">
+							Sin datos para mostrar
+						</td>
+					</tr>
+				`;
+				return;
+			}
+
+			const rows = data.map((item, index) => {
+				const prevValue = index > 0 ? data[index - 1].value : null;
+				const change = prevValue ? item.value - prevValue : 0;
+				const changeText = prevValue ? 
+					(change >= 0 ? `+${change.toFixed(1)}` : change.toFixed(1)) : 
+					'--';
+				const changeClass = change > 0 ? 'text-green-600' : change < 0 ? 'text-red-600' : 'text-gray-600';
+
+				return `
+					<tr>
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+							${formatDate(item.date)}
+						</td>
+						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+							${item.value}${item.unit}
+						</td>
+						<td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${changeClass}">
+							${changeText}${item.unit}
+						</td>
+					</tr>
+				`;
+			}).join('');
+
+			tableBody.innerHTML = rows;
+		}
+
+		function renderSimpleChart(data, metric) {
+			if (data.length === 0) {
+				showNoDataMessage();
+				return;
+			}
+
+			// Create a simple bar/line chart using CSS
+			const maxValue = Math.max(...data.map(d => d.value));
+			const minValue = Math.min(...data.map(d => d.value));
+			const range = maxValue - minValue;
+
+			const chartHTML = `
+				<div class="h-full flex flex-col">
+					<div class="flex-1 flex items-end justify-between px-4 pb-4">
+						${data.map(item => {
+							const height = range > 0 ? ((item.value - minValue) / range) * 80 + 10 : 50;
+							return `
+								<div class="flex flex-col items-center mx-1">
+									<div class="bg-blue-500 rounded-t-sm transition-all duration-300 hover:bg-blue-600 cursor-pointer relative group" 
+										style="height: ${height}%; width: ${Math.max(300 / data.length - 8, 20)}px;">
+										<div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+											${item.value}${item.unit}
+										</div>
+									</div>
+									<div class="text-xs text-gray-600 mt-2 transform rotate-45 origin-left">
+										${formatDateShort(item.date)}
+									</div>
+								</div>
+							`;
+						}).join('')}
+					</div>
+					<div class="border-t border-gray-200 pt-2">
+						<div class="flex justify-between text-xs text-gray-500">
+							<span>Min: ${minValue.toFixed(1)}${data[0].unit}</span>
+							<span>Max: ${maxValue.toFixed(1)}${data[0].unit}</span>
+						</div>
+					</div>
+				</div>
+			`;
+
+			chartContainer.innerHTML = chartHTML;
+		}
+
+		function showNoDataMessage() {
+			chartContainer.innerHTML = `
+				<div class="flex items-center justify-center h-full text-gray-500">
+					<div class="text-center">
+						<div class="text-4xl mb-4">📊</div>
+						<p class="text-lg mb-2">Sin datos para mostrar</p>
+						<p class="text-sm">Registra algunos datos antropométricos para ver tu progreso</p>
+					</div>
+				</div>
+			`;
+		}
+
+		function showErrorMessage() {
+			chartContainer.innerHTML = `
+				<div class="flex items-center justify-center h-full text-gray-500">
+					<div class="text-center">
+						<div class="text-4xl mb-4">❌</div>
+						<p class="text-lg mb-2">Error al cargar los datos</p>
+						<p class="text-sm">Intenta recargar la página</p>
+					</div>
+				</div>
+			`;
+		}
+
+		function formatDate(date) {
+			return date.toLocaleDateString('es-ES', {
+				year: 'numeric',
+				month: 'short',
+				day: 'numeric'
+			});
+		}
+
+		function formatDateShort(date) {
+			return date.toLocaleDateString('es-ES', {
+				month: 'short',
+				day: 'numeric'
+			});
+		}
+
+		// Initialize on load
+		loadChart();
+	});
+</script>

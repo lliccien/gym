@@ -105,10 +105,6 @@ Esta aplicación fue migrada completamente desde una versión vanilla (HTML/JS/C
 - ✅ Mejor estructura de código
 - ✅ Estilos modernos con Tailwind CSS
 
-## 📁 Archivos Legacy
-
-Los archivos originales (HTML/JS/CSS vanilla) se encuentran en la carpeta `legacy-files/` para referencia histórica. Estos archivos ya no son necesarios para el funcionamiento de la aplicación migrada.
-
 ## 🎯 Próximas Mejoras
 
 - [ ] Sincronización en la nube
